@@ -30,17 +30,17 @@ class IcuConan(ConanFile):
             self.run("bash {0}/build_icu_{1}.sh {0} {2} {0}/install_{3}").format(root_path,self.settings.build_type,platform,self.settings.build_type)
 
     def package(self):
-        install_path = f'install_{self.settings.build_type}'
-        self.copy("*", "include", f"{install_path}/include", keep_path=True)
+        install_path = "install_{0}".format(self.settings.build_type)
+        self.copy("*", "include", "{0}/include".format(install_path), keep_path=True)
 
-        self.copy("*.exe", "bin", f"{install_path}/bin", keep_path=False)
-        self.copy("*.lib", "lib", f"{install_path}/lib", keep_path=False)
-        self.copy("*.pdb", "lib", f"build_{self.settings.build_type}/lib", keep_path=False)
-        self.copy("*.pdb", "lib", f"build_{self.settings.build_type}/tools/toolutil", keep_path=False)
-        self.copy("*.dll", "bin", f"{install_path}/bin", keep_path=False)
-        self.copy("*.pdb", "bin", f"{install_path}/lib", keep_path=False)
+        self.copy("*.exe", "bin", "{0}/bin".format(install_path), keep_path=False)
+        self.copy("*.lib", "lib", "{0}/lib".format(install_path), keep_path=False)
+        self.copy("*.pdb", "lib", "build_{0}/lib".format(self.settings.build_type), keep_path=False)
+        self.copy("*.pdb", "lib", "build_{0}/tools/toolutil".format(self.settings.build_type), keep_path=False)
+        self.copy("*.dll", "bin", "{0}/bin".format(install_path), keep_path=False)
+        self.copy("*.pdb", "bin", "{0}/lib".format(install_path), keep_path=False)
 
-        self.copy("*.dat", "data", f"{install_path}/share", keep_path=False)
+        self.copy("*.dat", "data", "{0}/share".format(install_path), keep_path=False)
 
         if self.settings.build_type == 'Debug':
             self.copy("*.cpp", "src", "icu", keep_path=True)
