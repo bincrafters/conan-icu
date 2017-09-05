@@ -17,7 +17,7 @@ class IcuConan(ConanFile):
         if self.settings.os == 'Windows':
             sln_file = os.path.join(self.name, "source","allinone","allinone.sln")
             vcvars_command = tools.vcvars_command(self.settings)
-            build_command = tools.build_sln_command(self.settings, sln_file)
+            build_command = tools.build_sln_command(self.settings, sln_file, targets=["i18n"])
             command = "{0} && {1}".format(vcvars_command, build_command)
             self.run(command)
         else:
