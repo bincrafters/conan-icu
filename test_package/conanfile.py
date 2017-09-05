@@ -7,7 +7,6 @@ class AzureiotsdkcTestConan(ConanFile):
     generators = "cmake"
     user = os.getenv("CONAN_USERNAME", "bincrafters")
     channel = os.getenv("CONAN_CHANNEL", "testing")
-    requires = "Azure-IoT-SDK-C/1.1.21@%s/%s" % (user, channel)
 
     def build(self):
         cmake = CMake(self)
