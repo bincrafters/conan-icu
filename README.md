@@ -8,7 +8,7 @@ The packages generated with this **conanfile** can be found in [Bintray](https:/
 
 ### Basic setup
 
-    $ conan install ICU/59.1@bincrafters/stable
+    $ conan install ICU/59.1@bincrafters/testing
 
 ### Project setup
 
