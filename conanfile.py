@@ -1,5 +1,5 @@
-from conans import ConanFile, VisualStudioBuildEnvironment, tools
-import os, glob
+from conans import ConanFile, tools
+import os
 
 class IcuConan(ConanFile):
     name = "icu"
