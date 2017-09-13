@@ -8,14 +8,14 @@ The packages generated with this **conanfile** can be found in [Bintray](https:/
 
 ### Basic setup
 
-    $ conan install ICU/59.1@bincrafters/testing
+    $ conan install icu/59.1@bincrafters/testing
 
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    ICU/59.1@bincrafters/stable
+    icu/59.1@bincrafters/stable
 
     [generators]
     txt
