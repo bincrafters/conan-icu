@@ -9,6 +9,8 @@ class IcuConan(ConanFile):
     url = "https://github.com/bincrafters/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
     source_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src".format(version,version.replace('.', '_'))
+    options = {"with_io": [True, False]}
+    default_options = "with_io=False"
 
     def source(self):
         if self.settings.os == 'Windows':
@@ -44,9 +46,13 @@ class IcuConan(ConanFile):
     def package(self):
         install_path = "output"
         self.copy("*", "include", "{0}/include".format(install_path), keep_path=True)
-        self.copy("*icui18n.dll", "lib", "{0}/lib".format(install_path), keep_path=False)
-        self.copy("*icui18n.dylib", "lib", "{0}/lib".format(install_path), keep_path=False)
-        self.copy("*icui18n.so", "lib", "{0}/lib".format(install_path), keep_path=False)
+        libs = ['i18n', 'uc', 'data']
+        if self.options.with_io:
+            libs.append('io')
+        for lib in libs:
+            self.copy("*icu{0}.dll".format(lib), "lib", "{0}/lib".format(install_path), keep_path=False)
+            self.copy("*icu{0}.dylib".format(lib), "lib", "{0}/lib".format(install_path), keep_path=False)
+            self.copy("*icu{0}.so".format(lib), "lib", "{0}/lib".format(install_path), keep_path=False)
 
     def package_info(self):
         self.cpp_info.libs = self.collect_libs()
