@@ -1,5 +1,5 @@
 from conans import ConanFile, VisualStudioBuildEnvironment, tools
-import os, glob
+import os
 
 class IcuConan(ConanFile):
     name = "icu"
@@ -24,7 +24,11 @@ class IcuConan(ConanFile):
         if self.settings.os == 'Windows':
             sln_file = os.path.join(src_path,"allinone","allinone.sln")
             vcvars_command = tools.vcvars_command(self.settings)
-            build_command = tools.build_sln_command(self.settings, sln_file, targets=["i18n"])
+            targets = ["i18n","common","stubdata"]
+            if self.options.with_io:
+                targets.append('io')
+            build_command = tools.build_sln_command(self.settings, sln_file, targets=targets)
+            build_command = build_command.replace('"x86"','"Win32"')
             command = "{0} && {1}".format(vcvars_command, build_command)
             self.run(command)
         else:
@@ -44,15 +48,32 @@ class IcuConan(ConanFile):
             self.run("cd {0} && make install".format(src_path))
 
     def package(self):
-        install_path = "output"
-        self.copy("*", "include", "{0}/include".format(install_path), keep_path=True)
-        libs = ['i18n', 'uc', 'data']
-        if self.options.with_io:
-            libs.append('io')
-        for lib in libs:
-            self.copy("*icu{0}.dll".format(lib), "lib", "{0}/lib".format(install_path), keep_path=False)
-            self.copy("*icu{0}.dylib".format(lib), "lib", "{0}/lib".format(install_path), keep_path=False)
-            self.copy("*icu{0}.so".format(lib), "lib", "{0}/lib".format(install_path), keep_path=False)
+        if self.settings.os == 'Windows':
+            libs = ['in', 'uc', 'dt']
+            if self.options.with_io:
+                libs.append('io')
+            bin_dir = 'lib'
+            lib_dir = 'lib'
+            if self.settings.arch == 'x86_64':
+                bin_dir = 'bin64'
+                lib_dir = 'lib64'
+            bin_dir = os.path.join(self.name, bin_dir)
+            lib_dir = os.path.join(self.name, lib_dir)
+            self.output.info("BIN_DIR = {0}".format(bin_dir))
+            self.output.info("LIB_DIR = {0}".format(lib_dir))
+            for lib in libs:
+                self.copy(pattern="*icu{0}*.dll".format(lib), dst="lib", src=bin_dir, keep_path=False)
+                self.copy(pattern="*icu{0}*.exp".format(lib), dst="lib", src=lib_dir, keep_path=False)
+                self.copy(pattern="*icu{0}*.lib".format(lib), dst="lib", src=lib_dir, keep_path=False)
+        else:
+            install_path = "output"
+            self.copy("*", "include", "{0}/include".format(install_path), keep_path=True)
+            libs = ['i18n', 'uc', 'data']
+            if self.options.with_io:
+                libs.append('io')
+            for lib in libs:
+                self.copy(pattern="*icu{0}.dylib".format(lib), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
+                self.copy(pattern="*icu{0}.so".format(lib), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
 
     def package_info(self):
         self.cpp_info.libs = self.collect_libs()
