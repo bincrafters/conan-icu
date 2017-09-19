@@ -49,6 +49,7 @@ class IcuConan(ConanFile):
 
     def package(self):
         if self.settings.os == 'Windows':
+            self.copy("*", "include", os.path.join(self.name,"include"), keep_path=True)
             libs = ['in', 'uc', 'dt']
             if self.options.with_io:
                 libs.append('io')
