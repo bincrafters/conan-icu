@@ -78,3 +78,4 @@ class IcuConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = self.collect_libs()
+        self.env_info.path = [os.path.join(self.package_folder, "lib")] + self.env_info.path
