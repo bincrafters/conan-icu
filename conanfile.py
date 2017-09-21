@@ -66,7 +66,7 @@ class IcuConan(ConanFile):
             if self.settings.build_type == 'Debug':
                 enable_debug = '--enable-debug'
             self.run("cd {0} && bash runConfigureICU {1} {2} --prefix={3}".format(
-                src_path, enable_debug, platform, os.path.join(self.name, 'output')))
+                src_path, enable_debug, platform, 'output'))
             self.run("cd {0} && make install".format(src_path))
 
     def package(self):
