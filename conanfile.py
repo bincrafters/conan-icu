@@ -1,4 +1,4 @@
-from conans import ConanFile, VisualStudioBuildEnvironment, tools
+from conans import ConanFile, tools
 import os
 
 class IcuConan(ConanFile):
@@ -19,18 +19,42 @@ class IcuConan(ConanFile):
             tools.get("{0}.tgz".format(self.source_url))
 
     def build(self):
-        root_path = self.conanfile_directory.replace('\\', '/')
+        root_path = self.conanfile_directory
+        with open(os.path.join(root_path, self.name,'source','data','makedata.mak'), "rU") as f:
+            makedata_mak = f.read()
+        #self.output.info(makedata_mak)
+        makedata_mak.replace(
+            '''GODATA "$(ICU_LIB_TARGET)" "$(TESTDATAOUT)\testdata.dat"''',
+            '''GODATA "$(ICU_LIB_TARGET)"''')
+        #self.output.warn(makedata_mak)
+        with open(os.path.join(root_path, self.name,'source','data','makedata.mak'), "w") as f:
+            f.write(makedata_mak)
         src_path = os.path.join(root_path, self.name, 'source')
         if self.settings.os == 'Windows':
             sln_file = os.path.join(src_path,"allinone","allinone.sln")
             vcvars_command = tools.vcvars_command(self.settings)
-            targets = ["i18n","common","stubdata"]
+            targets = ["i18n","common","pkgdata"]
             if self.options.with_io:
                 targets.append('io')
             build_command = tools.build_sln_command(self.settings, sln_file, targets=targets)
             build_command = build_command.replace('"x86"','"Win32"')
             command = "{0} && {1}".format(vcvars_command, build_command)
             self.run(command)
+            cfg = 'x64' if self.settings.arch == 'x86_64' else 'x86'
+            cfg += "\\"+str(self.settings.build_type)
+            data_dir = src_path+"\\data"
+            bin_dir = data_dir+"\\..\\..\\bin"
+            if self.settings.arch == 'x86_64':
+                bin_dir += '64'
+            icudt_target = bin_dir+"\\icudt{0}.dll".format(self.version.split('.')[0])
+            makedata = '{vcvars} && cd {datadir} && nmake /a /f makedata.mak ICUMAKE="{datadir}" CFG={cfg}'.format(
+                vcvars=vcvars_command,
+                datadir=data_dir,
+                cfg=cfg,
+                target=icudt_target)
+            # os.remove(icudt_target)
+            self.output.info(makedata)
+            self.run(makedata)
         else:
             platform = ''
             if self.settings.os == 'Linux':
