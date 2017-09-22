@@ -41,7 +41,6 @@ class IcuConan(ConanFile):
             bin_dir = data_dir+"\\..\\..\\bin"
             if self.settings.arch == 'x86_64':
                 bin_dir += '64'
-            icudt_target = bin_dir+"\\icudt{0}.dll".format(self.version.split('.')[0])
             makedata = '{vcvars} && cd {datadir} && nmake /a /f makedata.mak ICUMAKE="{datadir}" CFG={cfg}'.format(
                 vcvars=vcvars_command,
                 datadir=data_dir,
@@ -90,8 +89,8 @@ class IcuConan(ConanFile):
             if self.options.with_io:
                 libs.append('io')
             for lib in libs:
-                self.copy(pattern="*icu{0}.dylib".format(lib), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
-                self.copy(pattern="*icu{0}.so".format(lib), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
+                self.copy(pattern="*icu{0}.{1}.dylib".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
+                self.copy(pattern="*icu{0}.{1}.so".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
 
     def package_info(self):
         self.cpp_info.libs = self.collect_libs()
