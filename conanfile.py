@@ -9,49 +9,89 @@ class IcuConan(ConanFile):
     url = "https://github.com/bincrafters/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
     source_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src".format(version,version.replace('.', '_'))
+    options = {"with_io": [True, False]}
+    default_options = "with_io=False"
 
     def source(self):
-        tools.get("{0}.zip".format(self.source_url))
+        if self.settings.os == 'Windows':
+            tools.get("{0}.zip".format(self.source_url))
+        else:
+            tools.get("{0}.tgz".format(self.source_url))
 
     def build(self):
+        root_path = self.conanfile_directory
+        tools.replace_in_file(
+            os.path.join(root_path, self.name,'source','data','makedata.mak'),
+            r'GODATA "$(ICU_LIB_TARGET)" "$(TESTDATAOUT)\testdata.dat"',
+            r'GODATA "$(ICU_LIB_TARGET)"')
+        src_path = os.path.join(root_path, self.name, 'source')
         if self.settings.os == 'Windows':
-            sln_file = os.path.join(self.name, "source","allinone","allinone.sln")
+            sln_file = os.path.join(src_path,"allinone","allinone.sln")
             vcvars_command = tools.vcvars_command(self.settings)
-            build_command = tools.build_sln_command(self.settings, sln_file, targets=["i18n"])
+            targets = ["i18n","common","pkgdata"]
+            if self.options.with_io:
+                targets.append('io')
+            build_command = tools.build_sln_command(self.settings, sln_file, targets=targets)
+            build_command = build_command.replace('"x86"','"Win32"')
             command = "{0} && {1}".format(vcvars_command, build_command)
             self.run(command)
+            cfg = 'x64' if self.settings.arch == 'x86_64' else 'x86'
+            cfg += "\\"+str(self.settings.build_type)
+            data_dir = src_path+"\\data"
+            bin_dir = data_dir+"\\..\\..\\bin"
+            if self.settings.arch == 'x86_64':
+                bin_dir += '64'
+            makedata = '{vcvars} && cd {datadir} && nmake /a /f makedata.mak ICUMAKE="{datadir}" CFG={cfg}'.format(
+                vcvars=vcvars_command,
+                datadir=data_dir,
+                cfg=cfg)
+            self.output.info(makedata)
+            self.run(makedata)
         else:
-            root_path = self.conanfile_directory.replace('\\', '/')
             platform = ''
             if self.settings.os == 'Linux':
-                platform = 'Linux'
-            elif self.settings.os == 'MacOs':
+                if self.settings.compiler == 'gcc':
+                    platform = 'Linux/gcc'
+                else:
+                    platform = 'Linux'
+            elif self.settings.os == 'Macos':
                 platform = 'MacOSX'
-            self.run("bash {0}/build_icu_{1}.sh {0} {2} {0}/install_{3}").format(root_path,self.settings.build_type,platform,self.settings.build_type)
+            enable_debug = ''
+            if self.settings.build_type == 'Debug':
+                enable_debug = '--enable-debug'
+            self.run("cd {0} && bash runConfigureICU {1} {2} --prefix={3}".format(
+                src_path, enable_debug, platform, os.path.join(root_path,'output')))
+            self.run("cd {0} && make install".format(src_path))
 
     def package(self):
-        install_path = "install_{0}".format(self.settings.build_type)
-        self.copy("*", "include", "{0}/include".format(install_path), keep_path=True)
-
-        self.copy("*.exe", "bin", "{0}/bin".format(install_path), keep_path=False)
-        self.copy("*.lib", "lib", "{0}/lib".format(install_path), keep_path=False)
-        self.copy("*.pdb", "lib", "build_{0}/lib".format(self.settings.build_type), keep_path=False)
-        self.copy("*.pdb", "lib", "build_{0}/tools/toolutil".format(self.settings.build_type), keep_path=False)
-        self.copy("*.dll", "bin", "{0}/bin".format(install_path), keep_path=False)
-        self.copy("*.pdb", "bin", "{0}/lib".format(install_path), keep_path=False)
-
-        self.copy("*.dat", "data", "{0}/share".format(install_path), keep_path=False)
-
-        if self.settings.build_type == 'Debug':
-            self.copy("*.cpp", "src", "icu", keep_path=True)
-            self.copy("*.hpp", "src", "icu", keep_path=True)
-            self.copy("*.h", "src", "icu", keep_path=True)
-            self.copy("*.c", "src", "icu", keep_path=True)
+        if self.settings.os == 'Windows':
+            self.copy("*", "include", os.path.join(self.name,"include"), keep_path=True)
+            libs = ['in', 'uc', 'dt']
+            if self.options.with_io:
+                libs.append('io')
+            bin_dir = 'lib'
+            lib_dir = 'lib'
+            if self.settings.arch == 'x86_64':
+                bin_dir = 'bin64'
+                lib_dir = 'lib64'
+            bin_dir = os.path.join(self.name, bin_dir)
+            lib_dir = os.path.join(self.name, lib_dir)
+            self.output.info("BIN_DIR = {0}".format(bin_dir))
+            self.output.info("LIB_DIR = {0}".format(lib_dir))
+            for lib in libs:
+                self.copy(pattern="*icu{0}*.dll".format(lib), dst="lib", src=bin_dir, keep_path=False)
+                self.copy(pattern="*icu{0}*.exp".format(lib), dst="lib", src=lib_dir, keep_path=False)
+                self.copy(pattern="*icu{0}*.lib".format(lib), dst="lib", src=lib_dir, keep_path=False)
+        else:
+            install_path = "output"
+            self.copy("*", "include", "{0}/include".format(install_path), keep_path=True)
+            libs = ['i18n', 'uc', 'data']
+            if self.options.with_io:
+                libs.append('io')
+            for lib in libs:
+                self.copy(pattern="*icu{0}.{1}.dylib".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
+                self.copy(pattern="*icu{0}.{1}.so".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
 
     def package_info(self):
-        self.cpp_info.defines = ['U_STATIC_IMPLEMENTATION=1', 'U_CHARSET_IS_UTF8=1', 'UNISTR_FROM_CHAR_EXPLICIT=explicit', 'UNISTR_FROM_STRING_EXPLICIT=explicit', 'U_NO_DEFAULT_INCLUDE_UTF_HEADERS=1']
-        if self.settings.compiler == 'Visual Studio':
-            if self.settings.build_type == 'Debug':
-                self.cpp_info.libs = ["sicuucd", "sicuind", "sicudtd", 'Advapi32']
-            elif self.settings.build_type == 'Release':
-                self.cpp_info.libs = ["sicuuc", "sicuin", "sicudt", 'Advapi32']
+        self.cpp_info.libs = self.collect_libs()
+        self.env_info.path = [os.path.join(self.package_folder, "lib")] + self.env_info.path
