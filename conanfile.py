@@ -27,7 +27,7 @@ class IcuConan(ConanFile):
         src_path = os.path.join(root_path, self.name, 'source')
         if self.settings.os == 'Windows':
             sln_file = os.path.join(src_path,"allinone","allinone.sln")
-            vcvars_command = tools.vcvars_command(self.settings)
+            vcvars_command = tools.vcvars_command(self.settings, upgrade_project=False)
             targets = ["i18n","common","pkgdata"]
             if self.options.with_io:
                 targets.append('io')
