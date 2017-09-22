@@ -27,11 +27,11 @@ class IcuConan(ConanFile):
         src_path = os.path.join(root_path, self.name, 'source')
         if self.settings.os == 'Windows':
             sln_file = os.path.join(src_path,"allinone","allinone.sln")
-            vcvars_command = tools.vcvars_command(self.settings, upgrade_project=False)
+            vcvars_command = tools.vcvars_command(self.settings)
             targets = ["i18n","common","pkgdata"]
             if self.options.with_io:
                 targets.append('io')
-            build_command = tools.build_sln_command(self.settings, sln_file, targets=targets)
+            build_command = tools.build_sln_command(self.settings, sln_file, targets=targets, upgrade_project=False)
             build_command = build_command.replace('"x86"','"Win32"')
             command = "{0} && {1}".format(vcvars_command, build_command)
             self.run(command)
