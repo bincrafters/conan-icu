@@ -31,7 +31,7 @@ class IcuConan(ConanFile):
             targets = ["i18n","common","pkgdata"]
             if self.options.with_io:
                 targets.append('io')
-            build_command = tools.build_sln_command(self.settings, sln_file, targets=targets)
+            build_command = tools.build_sln_command(self.settings, sln_file, targets=targets, upgrade_project=False)
             build_command = build_command.replace('"x86"','"Win32"')
             command = "{0} && {1}".format(vcvars_command, build_command)
             self.run(command)
