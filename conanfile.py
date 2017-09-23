@@ -84,7 +84,7 @@ class IcuConan(ConanFile):
                 self.copy(pattern="*icu{0}*.lib".format(lib), dst="lib", src=lib_dir, keep_path=False)
         else:
             install_path = "output"
-            self.copy("*", dst="include", os.path.join(install_path, "include"), keep_path=True)
+            self.copy("*", dst="include", src=os.path.join(install_path, "include"), keep_path=True)
             libs = ['i18n', 'uc', 'data']
             if self.options.with_io:
                 libs.append('io')
