@@ -69,7 +69,7 @@ class IcuConan(ConanFile):
             libs = ['in', 'uc', 'dt']
             if self.options.with_io:
                 libs.append('io')
-            bin_dir = 'lib'
+            bin_dir = 'bin'
             lib_dir = 'lib'
             if self.settings.arch == 'x86_64':
                 bin_dir = 'bin64'
