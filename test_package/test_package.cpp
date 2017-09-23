@@ -1,5 +1,5 @@
 #include "unicode/unistr.h"
 
 int main() {
-    UnicodeString source("test_package.");
+    icu::UnicodeString test_package("test_package.");
 }
