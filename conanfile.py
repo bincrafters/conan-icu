@@ -89,7 +89,7 @@ class IcuConan(ConanFile):
             if self.options.with_io:
                 libs.append('io')
             for lib in libs:
-                self.copy(pattern="*icu{0}.{1}.dylib".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=True)
+                self.copy(pattern="*icu{0}.{1}.dylib".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=True, symlinks=True)
                 self.copy(pattern="*icu{0}.{1}.so".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=False, symlinks=True)
 
     def package_info(self):
