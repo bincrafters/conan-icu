@@ -61,7 +61,7 @@ class IcuConan(ConanFile):
                 enable_debug = '--enable-debug'
             self.run("cd {0} && bash runConfigureICU {1} {2} --prefix={3}".format(
                 src_path, enable_debug, platform, os.path.join(root_path,'output')))
-            self.run("cd {0} && make -j {1} install".format(src_path, tools.cpu_count()))
+            self.run("cd {0} && make install".format(src_path))
 
     def package(self):
         if self.settings.os == 'Windows':
@@ -69,7 +69,7 @@ class IcuConan(ConanFile):
             libs = ['in', 'uc', 'dt']
             if self.options.with_io:
                 libs.append('io')
-            bin_dir = 'bin'
+            bin_dir = 'lib'
             lib_dir = 'lib'
             if self.settings.arch == 'x86_64':
                 bin_dir = 'bin64'
@@ -89,8 +89,8 @@ class IcuConan(ConanFile):
             if self.options.with_io:
                 libs.append('io')
             for lib in libs:
-                self.copy(pattern="*icu{0}.{1}.dylib".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
-                self.copy(pattern="*icu{0}.so.{1}".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
+                self.copy(pattern="*icu{0}.{1}.dylib".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=True)
+                self.copy(pattern="*icu{0}.{1}.so".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=False)
 
     def package_info(self):
         self.cpp_info.libs = self.collect_libs()
