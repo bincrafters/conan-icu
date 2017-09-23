@@ -84,13 +84,13 @@ class IcuConan(ConanFile):
                 self.copy(pattern="*icu{0}*.lib".format(lib), dst="lib", src=lib_dir, keep_path=False)
         else:
             install_path = "output"
-            self.copy("*", "include", "{0}/include".format(install_path), keep_path=True)
+            self.copy("*", dst="include", os.path.join(install_path, "include"), keep_path=True)
             libs = ['i18n', 'uc', 'data']
             if self.options.with_io:
                 libs.append('io')
             for lib in libs:
-                self.copy(pattern="*icu{0}.{1}.dylib".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=True, symlinks=True)
-                self.copy(pattern="*icu{0}.{1}.so".format(lib, self.version), dst="lib", src="{0}/lib".format(install_path), keep_path=False, symlinks=True)
+                self.copy(pattern="*.dylib", dst="lib", src=os.path.join(install_path, "lib"), keep_path=True, symlinks=True)
+                self.copy(pattern="*.so", dst="lib", src=os.path.join(install_path, "lib"), keep_path=False, symlinks=True)
 
     def package_info(self):
         self.cpp_info.libs = self.collect_libs()
