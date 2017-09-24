@@ -86,8 +86,8 @@ class IcuConan(ConanFile):
             self.copy("*", dst="include", src="include" , keep_path=True)
             with tools.chdir(os.path.join(os.getcwd() , "output", "lib")):
                 self.run(r"ls -l")
-                self.copy(pattern="*", dst="lib",  keep_path=True, symlinks=True)
-                self.copy(pattern="*", dst="lib", keep_path=False, symlinks=True)
+                self.copy(pattern="*.dylib*", dst="lib",  keep_path=True, symlinks=True)
+                self.copy(pattern="*.so*", dst="lib", keep_path=False, symlinks=True)
 
     def package_info(self):
         self.cpp_info.libs = self.collect_libs()
