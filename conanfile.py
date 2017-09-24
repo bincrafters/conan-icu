@@ -83,10 +83,10 @@ class IcuConan(ConanFile):
                 self.copy(pattern="*icu{0}*.exp".format(lib), dst="lib", src=lib_dir, keep_path=False)
                 self.copy(pattern="*icu{0}*.lib".format(lib), dst="lib", src=lib_dir, keep_path=False)
         else:
-            self.copy("*", dst="include", src="include" , keep_path=True)
-            with tools.chdir(os.path.join(os.getcwd() , "output", "lib")):
-                self.run(r"ls -l")
-                self.copy(pattern="*.dylib*", dst="lib",  keep_path=True, symlinks=True)
+            with tools.chdir(os.path.join(self.build_folder , "output", "include")):
+                self.copy(pattern="*", dst="include", keep_path=True)
+            with tools.chdir(os.path.join(self.build_folder , "output", "lib")):
+                self.copy(pattern="*.dylib*", dst="lib", keep_path=True, symlinks=True)
                 self.copy(pattern="*.so*", dst="lib", keep_path=False, symlinks=True)
 
     def package_info(self):
