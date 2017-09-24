@@ -84,11 +84,11 @@ class IcuConan(ConanFile):
                 self.copy(pattern="*icu{0}*.lib".format(lib), dst="lib", src=lib_dir, keep_path=False)
         else:
             self.copy("*", dst="include", src="include" , keep_path=True)
-            self.output.info("cwd before=" + os.cwd())
+            self.output.info("cwd before=" + os.getcwd())
             self.run(r"find . -name \*.so*")
             self.run(r"find . -name \*.dylib*")
             with tools.chdir(os.path.join(os.getcwd() , "output")):
-                self.output.info("cwd after=" + os.cwd())
+                self.output.info("cwd after=" + os.getcwd())
                 self.run(r"find . -name \*.so*")
                 self.run(r"find . -name \*.dylib*")
                 self.copy(pattern="*.dylib", dst="lib", src="lib", keep_path=True, symlinks=True)
