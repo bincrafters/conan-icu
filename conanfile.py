@@ -83,11 +83,9 @@ class IcuConan(ConanFile):
                 self.copy(pattern="*icu{0}*.exp".format(lib), dst="lib", src=lib_dir, keep_path=False)
                 self.copy(pattern="*icu{0}*.lib".format(lib), dst="lib", src=lib_dir, keep_path=False)
         else:
-            with tools.chdir(os.path.join(self.build_folder , "output", "include")):
-                self.copy(pattern="*.h", dst="include", keep_path=True)
-            with tools.chdir(os.path.join(self.build_folder , "output", "lib")):
-                self.copy(pattern="*.dylib*", dst="lib", keep_path=True, symlinks=True)
-                self.copy(pattern="*.so*", dst="lib", keep_path=False, symlinks=True)
+            self.copy(pattern="*.h", dst="include", src=os.path.join("output", "include"), keep_path=True)
+            self.copy(pattern="*.dylib*", dst="lib", src=os.path.join("output", "lib"), keep_path=True, symlinks=True)
+            self.copy(pattern="*.so*", dst="lib", src=os.path.join("output", "lib"), keep_path=False, symlinks=True)
 
     def package_info(self):
         self.cpp_info.libs = self.collect_libs()
