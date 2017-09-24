@@ -56,36 +56,33 @@ class IcuConan(ConanFile):
                     platform = 'Linux'
             elif self.settings.os == 'Macos':
                 platform = 'MacOSX'
-            enable_debug = ''
-            if self.settings.build_type == 'Debug':
-                enable_debug = '--enable-debug'
+                
+            enable_debug = '--enable-debug' if self.settings.build_type == 'Debug' else ''
+
             self.run("cd {0} && bash runConfigureICU {1} {2} --prefix={3}".format(
                 src_path, enable_debug, platform, os.path.join(root_path,'output')))
             self.run("cd {0} && make install".format(src_path))
 
     def package(self):
         if self.settings.os == 'Windows':
-            self.copy("*", "include", os.path.join(self.name,"include"), keep_path=True)
-            libs = ['in', 'uc', 'dt']
-            if self.options.with_io:
-                libs.append('io')
-            bin_dir = 'bin'
-            lib_dir = 'lib'
-            if self.settings.arch == 'x86_64':
-                bin_dir = 'bin64'
-                lib_dir = 'lib64'
-            bin_dir = os.path.join(self.name, bin_dir)
-            lib_dir = os.path.join(self.name, lib_dir)
-            self.output.info("BIN_DIR = {0}".format(bin_dir))
-            self.output.info("LIB_DIR = {0}".format(lib_dir))
-            for lib in libs:
-                self.copy(pattern="*icu{0}*.dll".format(lib), dst="lib", src=bin_dir, keep_path=False)
-                self.copy(pattern="*icu{0}*.exp".format(lib), dst="lib", src=lib_dir, keep_path=False)
-                self.copy(pattern="*icu{0}*.lib".format(lib), dst="lib", src=lib_dir, keep_path=False)
+            include_dir = "include"
+            bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin' , 'lib')
+            include_dir, bin_dir, lib_dir = (os.path.join(self.name, path) for path in (include_dir, bin_dir, lib_dir))
+            self.output.info("include_dir = {0}".format(include_dir))
+            self.output.info("bin_dir = {0}".format(bin_dir))
+            self.output.info("lib_dir = {0}".format(lib_dir))
+            self.copy(pattern="*.h", dst="include", src=include_dir, keep_path=True)
+            self.copy(pattern="*.lib", dst="lib", src=lib_dir, keep_path=False)
+            self.copy(pattern="*.exp", dst="lib", src=lib_dir, keep_path=False)
+            self.copy(pattern="*.dll", dst="lib", src=bin_dir, keep_path=False)
+            
         else:
-            self.copy(pattern="*.h", dst="include", src=os.path.join("output", "include"), keep_path=True)
-            self.copy(pattern="*.dylib*", dst="lib", src=os.path.join("output", "lib"), keep_path=True, symlinks=True)
-            self.copy(pattern="*.so*", dst="lib", src=os.path.join("output", "lib"), keep_path=False, symlinks=True)
+            include_dir, lib_dir = (os.path.join("output", path) for path in ("include", "lib"))
+            self.output.info("include_dir = {0}".format(include_dir))
+            self.output.info("lib_dir = {0}".format(lib_dir))
+            self.copy(pattern="*.h", dst="include", src=include_dir, keep_path=True)
+            self.copy(pattern="*.dylib*", dst="lib", src=lib_dir, keep_path=True, symlinks=True)
+            self.copy(pattern="*.so*", dst="lib", src=lib_dir, keep_path=False, symlinks=True)
 
     def package_info(self):
         self.cpp_info.libs = self.collect_libs()
