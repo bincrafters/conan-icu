@@ -16,4 +16,6 @@ class TestPackageConan(ConanFile):
         self.copy("*", dst="bin", src="lib")
         
     def test(self):
+        self.run("ls -l")
+        self.run('find . -name "*"')
         self.run(os.path.join("bin","test_package"))
