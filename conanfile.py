@@ -84,7 +84,7 @@ class IcuConan(ConanFile):
                 self.copy(pattern="*icu{0}*.lib".format(lib), dst="lib", src=lib_dir, keep_path=False)
         else:
             with tools.chdir(os.path.join(self.build_folder , "output", "include")):
-                self.copy(pattern="*", dst="include", keep_path=True)
+                self.copy(pattern="*.h", dst="include", keep_path=True)
             with tools.chdir(os.path.join(self.build_folder , "output", "lib")):
                 self.copy(pattern="*.dylib*", dst="lib", keep_path=True, symlinks=True)
                 self.copy(pattern="*.so*", dst="lib", keep_path=False, symlinks=True)
