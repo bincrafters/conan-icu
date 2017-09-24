@@ -5,7 +5,7 @@ class IcuConan(ConanFile):
     name = "icu"
     version = "59.1"
     license="http://www.unicode.org/copyright.html#License"
-    description = 'ICU is a mature, widely used set of C/C++ and Java libraries providing Unicode and Globalization support for software applications.'
+    description = "ICU is a mature, widely used set of C/C++ and Java libraries providing Unicode and Globalization support for software applications."
     url = "https://github.com/bincrafters/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
     source_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src".format(version,version.replace('.', '_'))
@@ -56,34 +56,35 @@ class IcuConan(ConanFile):
                     platform = 'Linux'
             elif self.settings.os == 'Macos':
                 platform = 'MacOSX'
-                
+            
+            arch = '64' if self.settings.arch == 'x86_64' else '32'
+             
             enable_debug = '--enable-debug' if self.settings.build_type == 'Debug' else ''
 
-            self.run("cd {0} && bash runConfigureICU {1} {2} --prefix={3}".format(
-                src_path, enable_debug, platform, os.path.join(root_path,'output')))
+            self.run("cd {0} && bash runConfigureICU {1} {2} --with-library-bits={3} --prefix={4}".format(
+                src_path, enable_debug, platform, arch, os.path.join(root_path,'output')))
             self.run("cd {0} && make install".format(src_path))
 
     def package(self):
         if self.settings.os == 'Windows':
-            include_dir = "include"
             bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin' , 'lib')
-            include_dir, bin_dir, lib_dir = (os.path.join(self.name, path) for path in (include_dir, bin_dir, lib_dir))
-            self.output.info("include_dir = {0}".format(include_dir))
-            self.output.info("bin_dir = {0}".format(bin_dir))
-            self.output.info("lib_dir = {0}".format(lib_dir))
-            self.copy(pattern="*.h", dst="include", src=include_dir, keep_path=True)
-            self.copy(pattern="*.lib", dst="lib", src=lib_dir, keep_path=False)
-            self.copy(pattern="*.exp", dst="lib", src=lib_dir, keep_path=False)
-            self.copy(pattern="*.dll", dst="lib", src=bin_dir, keep_path=False)
+            include_dir, bin_dir, lib_dir = (os.path.join(self.name, path) for path in ('include', bin_dir, lib_dir))
+            self.output.info('include_dir = {0}'.format(include_dir))
+            self.output.info('bin_dir = {0}'.format(bin_dir))
+            self.output.info('lib_dir = {0}'.format(lib_dir))
+            self.copy(pattern='*.h', dst='include', src=include_dir, keep_path=True)
+            self.copy(pattern='*.lib', dst='lib', src=lib_dir, keep_path=False)
+            self.copy(pattern='*.exp', dst='lib', src=lib_dir, keep_path=False)
+            self.copy(pattern='*.dll', dst='lib', src=bin_dir, keep_path=False)
             
         else:
-            include_dir, lib_dir = (os.path.join("output", path) for path in ("include", "lib"))
-            self.output.info("include_dir = {0}".format(include_dir))
-            self.output.info("lib_dir = {0}".format(lib_dir))
-            self.copy(pattern="*.h", dst="include", src=include_dir, keep_path=True)
-            self.copy(pattern="*.dylib*", dst="lib", src=lib_dir, keep_path=True, symlinks=True)
-            self.copy(pattern="*.so*", dst="lib", src=lib_dir, keep_path=False, symlinks=True)
+            include_dir, lib_dir = (os.path.join('output', path) for path in ('include', 'lib'))
+            self.output.info('include_dir = {0}'.format(include_dir))
+            self.output.info('lib_dir = {0}'.format(lib_dir))
+            self.copy(pattern='*.h', dst='include', src=include_dir, keep_path=True)
+            self.copy(pattern='*.dylib*', dst='lib', src=lib_dir, keep_path=True, symlinks=True)
+            self.copy(pattern='*.so*', dst='lib', src=lib_dir, keep_path=False, symlinks=True)
 
     def package_info(self):
-        self.cpp_info.libs = self.collect_libs()
-        self.env_info.path = [os.path.join(self.package_folder, "lib")] + self.env_info.path
+        self.cpp_info.libs = tools.collect_libs(self)
+        self.env_info.path = [os.path.join(self.package_folder, 'lib')] + self.env_info.path
