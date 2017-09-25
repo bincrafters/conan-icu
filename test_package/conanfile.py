@@ -8,14 +8,12 @@ class TestPackageConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure(source_dir=self.conanfile_directory, build_dir="./")
+        cmake.configure()
         cmake.build()
         
     def imports(self):
         self.copy("*", dst="bin", src="bin")
         self.copy("*", dst="bin", src="lib")
-        self.copy("libicudata*", dst="lib", src="lib")
-        
+
     def test(self):
-        os.chdir("bin")
-        self.run(".%stest_package" % os.sep)
+        self.run(os.path.join("bin","test_package"))
