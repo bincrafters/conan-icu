@@ -19,4 +19,6 @@ class TestPackageConan(ConanFile):
     def test(self):
         self.run("ls -l")
         self.run('find . -name "*"')
-        self.run(os.path.join("bin","test_package"))
+        bin_dir = os.path.join(os.getcwd(), "bin")
+        with tools.environment_append({"DYLD_LIBRARY_PATH": bin_dir, "LD_LIBRARY_PATH": bin_dir}):
+            self.run(os.path.join("bin","test_package"))
