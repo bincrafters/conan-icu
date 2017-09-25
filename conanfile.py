@@ -1,5 +1,6 @@
-from conans import ConanFile, tools
+from conans import ConanFile, tools, AutoToolsBuildEnvironment
 import os
+import glob
 
 class IcuConan(ConanFile):
     name = "icu"
@@ -48,22 +49,30 @@ class IcuConan(ConanFile):
             self.output.info(makedata)
             self.run(makedata)
         else:
-            platform = ''
-            if self.settings.os == 'Linux':
-                if self.settings.compiler == 'gcc':
-                    platform = 'Linux/gcc'
-                else:
-                    platform = 'Linux'
-            elif self.settings.os == 'Macos':
-                platform = 'MacOSX'
-            
-            arch = '64' if self.settings.arch == 'x86_64' else '32'
-             
-            enable_debug = '--enable-debug' if self.settings.build_type == 'Debug' else ''
+            env_build = AutoToolsBuildEnvironment(self)
+            with tools.environment_append(env_build.vars):
+                platform = ''
+                if self.settings.os == 'Linux':
+                    if self.settings.compiler == 'gcc':
+                        platform = 'Linux/gcc'
+                    else:
+                        platform = 'Linux'
+                elif self.settings.os == 'Macos':
+                    platform = 'MacOSX'
 
-            self.run("cd {0} && bash runConfigureICU {1} {2} --with-library-bits={3} --prefix={4}".format(
-                src_path, enable_debug, platform, arch, os.path.join(root_path,'output')))
-            self.run("cd {0} && make install".format(src_path))
+                arch = '64' if self.settings.arch == 'x86_64' else '32'
+
+                enable_debug = '--enable-debug' if self.settings.build_type == 'Debug' else ''
+    
+                self.run("cd {0} && bash runConfigureICU {1} {2} --with-library-bits={3} --prefix={4}".format(
+                    src_path, enable_debug, platform, arch, os.path.join(root_path,'output')))
+                self.run("cd {0} && make -j {1} install".format(src_path, tools.cpu_count()))
+
+                if self.settings.os == 'Macos':
+                    with tools.chdir('output/lib'):
+                        for dylib in glob.glob('*icu*.{0}.dylib'.format(self.version)):
+                            self.run('install_name_tool -id {0} {1}'.format(
+                                os.path.basename(dylib), dylib))
 
     def package(self):
         if self.settings.os == 'Windows':
@@ -82,8 +91,17 @@ class IcuConan(ConanFile):
             self.output.info('include_dir = {0}'.format(include_dir))
             self.output.info('lib_dir = {0}'.format(lib_dir))
             self.copy(pattern='*.h', dst='include', src=include_dir, keep_path=True)
-            self.copy(pattern='*.dylib*', dst='lib', src=lib_dir, keep_path=True, symlinks=True)
-            self.copy(pattern='*.so*', dst='lib', src=lib_dir, keep_path=False, symlinks=True)
+
+            libs = ['i18n', 'uc', 'data']
+            if self.options.with_io:
+                libs.append('io')
+            for lib in libs:
+                self.copy(pattern="*icu{0}*.dylib".format(lib), dst="lib", src=lib_dir, keep_path=False, symlinks=True)
+                self.copy(pattern="*icu{0}.so*".format(lib), dst="lib", src=lib_dir, keep_path=False, symlinks=True)
 
     def package_info(self):
-        self.cpp_info.libs = tools.collect_libs(self)
+        self.cpp_info.libs = []
+        vtag = self.version.split('.')[0]
+        for lib in tools.collect_libs(self):
+            if not vtag in lib:
+                self.cpp_info.libs.append(lib)

@@ -14,10 +14,8 @@ class TestPackageConan(ConanFile):
     def imports(self):
         self.copy("*", dst="bin", src="bin")
         self.copy("*", dst="bin", src="lib")
-        self.copy("libicudata*", dst="lib", src="lib")
 
     def test(self):
         bin_dir = os.path.join(os.getcwd(), "bin")
         os.chdir(bin_dir)
-        with tools.environment_append({"LD_LIBRARY_PATH": bin_dir}):
-            self.run(".{0}test_package".format(os.sep))
+        self.run(".{0}test_package".format(os.sep))
