@@ -14,6 +14,7 @@ class TestPackageConan(ConanFile):
     def imports(self):
         self.copy("*", dst="bin", src="bin")
         self.copy("*", dst="bin", src="lib")
+        self.copy("libicudata*", dst="lib", src="lib")
 
     def test(self):
         bin_dir = os.path.join(os.getcwd(), "bin")
