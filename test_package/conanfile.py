@@ -18,4 +18,4 @@ class TestPackageConan(ConanFile):
         
     def test(self):
         os.chdir("bin")
-        self.run("test_package")
+        self.run(".%stest_package" % os.sep)
