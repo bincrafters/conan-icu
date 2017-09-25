@@ -17,9 +17,6 @@ class TestPackageConan(ConanFile):
         self.copy("libicudata*", dst="lib", src="lib")
         
     def test(self):
-        self.run("ls -l")
-        self.run('find . -name "*"')
         bin_dir = os.path.join(os.getcwd(), "bin")
-        lib_dir = os.path.join(os.getcwd(), "lib")
-        with tools.environment_append({"DYLD_LIBRARY_PATH": lib_dir}):
+        with tools.environment_append({"LD_LIBRARY_PATH": bin_dir}):
             self.run(os.path.join("bin","test_package"))
