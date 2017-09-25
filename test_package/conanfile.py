@@ -8,7 +8,7 @@ class TestPackageConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure()
+        cmake.configure(source_dir=self.conanfile_directory, build_dir="./")
         cmake.build()
         
     def imports(self):
@@ -17,6 +17,5 @@ class TestPackageConan(ConanFile):
         self.copy("libicudata*", dst="lib", src="lib")
         
     def test(self):
-        bin_dir = os.path.join(os.getcwd(), "bin")
-        with tools.environment_append({"LD_LIBRARY_PATH": bin_dir}):
-            self.run(os.path.join("bin","test_package"))
+        os.chdir("bin")
+        self.run("test_package")
