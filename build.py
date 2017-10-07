@@ -34,15 +34,15 @@ if __name__ == "__main__":
     # builder.add({"arch": "x86", "os" : os}, {"icu:shared": False, "icu:with_data": True, "icu:msvc_platform": "visual_studio"})
     # builder.add({"arch": "x86", "os" : os}, {"icu:shared": False, "icu:with_data": False, "icu:msvc_platform": "visual_studio"})
                     
-    builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": True, "icu:with_data": True, "icu:msvc_platform": "visual_studio"})
-    builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": True, "icu:with_data": False, "icu:msvc_platform": "visual_studio"})
-    builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": False, "icu:with_data": True, "icu:msvc_platform": "visual_studio"})
-    builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": False, "icu:with_data": False, "icu:msvc_platform": "visual_studio"})
+    # builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": True, "icu:with_data": True, "icu:msvc_platform": "visual_studio"})
+    # builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": True, "icu:with_data": False, "icu:msvc_platform": "visual_studio"})
+    # builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": False, "icu:with_data": True, "icu:msvc_platform": "visual_studio"})
+    # builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": False, "icu:with_data": False, "icu:msvc_platform": "visual_studio"})
 
-    # builder.add({"arch": "x86", "os" : os}, {"icu:shared": True, "icu:with_data": True, "icu:msvc_platform": "cygwin"})
-    # builder.add({"arch": "x86", "os" : os}, {"icu:shared": True, "icu:with_data": False, "icu:msvc_platform": "cygwin"})
-    # builder.add({"arch": "x86", "os" : os}, {"icu:shared": False, "icu:with_data": True, "icu:msvc_platform": "cygwin"})
-    # builder.add({"arch": "x86", "os" : os}, {"icu:shared": False, "icu:with_data": False, "icu:msvc_platform": "cygwin"})
+    builder.add({"arch": "x86", "os" : os}, {"icu:shared": True, "icu:with_data": True, "icu:msvc_platform": "cygwin"})
+    builder.add({"arch": "x86", "os" : os}, {"icu:shared": True, "icu:with_data": False, "icu:msvc_platform": "cygwin"})
+    builder.add({"arch": "x86", "os" : os}, {"icu:shared": False, "icu:with_data": True, "icu:msvc_platform": "cygwin"})
+    builder.add({"arch": "x86", "os" : os}, {"icu:shared": False, "icu:with_data": False, "icu:msvc_platform": "cygwin"})
                     
     builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": True, "icu:with_data": True, "icu:msvc_platform": "cygwin"})
     builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": True, "icu:with_data": False, "icu:msvc_platform": "cygwin"})
