@@ -1,4 +1,4 @@
-from conans import ConanFile, tools, VisualStudioBuildEnvironment, AutoToolsBuildEnvironment
+from conans import ConanFile, tools, AutoToolsBuildEnvironment
 import os
 import glob
 import shutil
@@ -60,7 +60,7 @@ class IcuConan(ConanFile):
                "shared": [True, False],
                "msvc_platform": ["visual_studio", "cygwin", "msys"],
                "data_packaging": ["shared", "static", "files", "archive"],
-               "with_msys" : [True, False],
+               "with_msys": [True, False],
                "with_unit_tests": [True, False]}
 
     default_options = "with_io=False", \
@@ -70,9 +70,9 @@ class IcuConan(ConanFile):
                       "data_packaging=archive", \
                       "with_msys=False", \
                       "with_unit_tests=False"
-                      
+
     def requirements(self):
-        if self.options.with_msys:
+        if self.options["with_msys"]:
             self.requires.add("msys_installer/latest@bincrafters/stable")
 
     def source(self):
@@ -84,9 +84,9 @@ class IcuConan(ConanFile):
 
         tools.get("{0}.{1}".format(self.source_url, archive_type))
         tools.download(r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD',
-                       'config.guess');
+                       'config.guess')
         tools.download(r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD',
-                       'config.sub');
+                       'config.sub')
 
         if self.options.with_data:
             tools.get("{0}.zip".format(self.data_url))
@@ -174,15 +174,14 @@ class IcuConan(ConanFile):
                 cygwin_root_path = os.environ["CYGWIN_ROOT"].replace('\\', '/')
 
                 os.environ["PATH"] = os.pathsep.join(r"C:\\Windows\\system32",
-                                     r"C:\\Windows", 
-                                     r"C:\\Windows\\system32\Wbem",
-                                     cygwin_root_path + "/bin",
-                                     cygwin_root_path + "/usr/bin",
-                                     cygwin_root_path + "/usr/sbin")
+                                                     r"C:\\Windows",
+                                                     r"C:\\Windows\\system32\Wbem",
+                                                     cygwin_root_path + "/bin",
+                                                     cygwin_root_path + "/usr/bin",
+                                                     cygwin_root_path + "/usr/sbin")
 
                 output_path = os.path.join(root_path, 'output')
                 root_path = root_path.replace('\\', '/')
-                src_path = src_path.replace('\\', '/')
                 output_path = output_path.replace('\\', '/')
 
                 configfile = os.path.join(root_path, self.name, 'source', 'runConfigureICU')
@@ -239,14 +238,13 @@ class IcuConan(ConanFile):
                 self.output.info("msys_root_path/bin: " + os.path.join(msys_root_path, 'usr', 'bin'))
 
                 os.environ["PATH"] = os.pathsep.join(r"C:\\Windows\\system32",
-                            r"C:\\Windows",
-                            r"C:\\Windows\\system32\Wbem",
-                            os.path.join(msys_root_path, 'usr', 'bin')
-                            
+                                                     r"C:\\Windows",
+                                                     r"C:\\Windows\\system32\Wbem",
+                                                     os.path.join(msys_root_path, 'usr', 'bin'))
+
                 self.output.info("PATH: " + os.environ["PATH"])
                 output_path = os.path.join(root_path, 'output')
                 root_path = root_path.replace('\\', '/')
-                src_path = src_path.replace('\\', '/')
                 output_path = output_path.replace('\\', '/')
 
                 configfile = os.path.join(root_path, self.name, 'source', 'runConfigureICU')
@@ -279,7 +277,8 @@ class IcuConan(ConanFile):
                 tools.replace_in_file(escapesrc_patch, 'SUBDIRS += escapesrc',
                                       '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
 
-                self.run("{0} && bash -c ^'cd {1} ^&^& make --silent -j {2}".format(vcvars_command, b_path, tools.cpu_count()))
+                self.run("{0} && bash -c ^'cd {1} ^&^& make --silent -j {2}".format(vcvars_command, b_path,
+                                                                                    tools.cpu_count()))
                 if self.options.with_unit_tests:
                     self.run("{0} && bash -c ^'cd {1} ^&^& make check".format(vcvars_command, b_path))
 
@@ -289,6 +288,7 @@ class IcuConan(ConanFile):
                 targets = ["i18n", "common", "pkgdata"]
                 if self.options.with_io:
                     targets.append('io')
+
                 build_command = tools.build_sln_command(self.settings, sln_file, targets=targets, upgrade_project=False)
                 build_command = build_command.replace('"x86"', '"Win32"')
                 command = "{0} && {1}".format(vcvars_command, build_command)
@@ -299,6 +299,7 @@ class IcuConan(ConanFile):
                 bin_dir = data_dir + "\\..\\..\\bin"
                 if self.settings.arch == 'x86_64':
                     bin_dir += '64'
+
                 makedata = '{vcvars} && cd {datadir} && nmake /a /f makedata.mak ICUMAKE="{datadir}" CFG={cfg}'.format(
                     vcvars=vcvars_command,
                     datadir=data_dir,
@@ -346,12 +347,6 @@ class IcuConan(ConanFile):
         if self.settings.os == 'Windows':
             if self.options.msvc_platform == 'cygwin' or self.options.msvc_platform == 'msys':
 
-                if self.options.msvc_platform == 'cygwin':
-                    platform = 'Cygwin/MSVC'
-
-                if self.options.msvc_platform == 'msys':
-                    platform = 'MSYS/MSVC'
-
                 bin_dir, include_dir, lib_dir, share_dir = (os.path.join('output', path) for path in
                                                             ('bin', 'include', 'lib', 'share'))
                 self.output.info('bin_dir = {0}'.format(bin_dir))
@@ -377,13 +372,6 @@ class IcuConan(ConanFile):
                 self.copy(pattern='*.exp', dst='lib', src=lib_dir, keep_path=False)
                 self.copy(pattern='*.dll', dst='lib', src=bin_dir, keep_path=False)
         else:
-            # libs = ['i18n', 'uc', 'data']
-            # if self.options.with_io:
-            #    libs.append('io')
-            # for lib in libs:
-            #    self.copy(pattern="*icu{0}*.dylib".format(lib), dst="lib", src=lib_dir, keep_path=False, symlinks=True)
-            #    self.copy(pattern="*icu{0}.so*".format(lib), dst="lib", src=lib_dir, keep_path=False, symlinks=True)
-
             bin_dir, include_dir, lib_dir, share_dir = (os.path.join('output', path) for path in
                                                         ('bin', 'include', 'lib', 'share'))
             self.output.info('bin_dir = {0}'.format(bin_dir))
@@ -419,5 +407,4 @@ class IcuConan(ConanFile):
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
 
             if self.settings.os == 'Linux':
-                # self.cpp_info.exelinkflags.append("-L{0}".format(os.path.join(self.package_folder, "share", "icu", "59.1")))
                 self.cpp_info.libs.append('dl')
