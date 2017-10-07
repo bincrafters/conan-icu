@@ -17,16 +17,7 @@ environment:
     PYTHON: "C:\\Python27"
     PYTHON_VERSION: "2.7.8"
     PYTHON_ARCH: "32"
-
     CYGWIN_ROOT: "C:\\cygwin64"
-    MSYS_ROOT: "C:\\msys64"
-
-    matrix:
-        - CONAN_ICU_MSVC_PLATFORM: cygwin
-          CONAN_ICU_SHARED: True
-
-        - CONAN_ICU_MSVC_PLATFORM: cygwin
-          CONAN_ICU_SHARED: False
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
