@@ -15,6 +15,8 @@ import shutil
 #
 # If you're building with MSYS, the environment variable MSYS_ROOT must be present or specified via the command line
 #
+# If you want Conan to download and provide MSYS, the "with_msys2" option will handle everything related to MSYS
+#
 # examples:
 #
 # To update the conanfile.py without rebuilding:
@@ -68,12 +70,12 @@ class IcuConan(ConanFile):
                       "shared=True", \
                       "msvc_platform=visual_studio", \
                       "data_packaging=archive", \
-                      "with_msys=False", \
+                      "with_msys2=False", \
                       "with_unit_tests=False"
 
     def requirements(self):
         if self.options.with_msys:
-            self.requires.add("msys_installer/latest@bincrafters/stable")
+            self.requires.add("msys2_installer/latest@bincrafters/stable")
 
     def source(self):
         archive_type = "zip"
