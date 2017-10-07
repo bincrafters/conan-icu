@@ -70,7 +70,7 @@ class IcuConan(ConanFile):
                       "shared=True", \
                       "msvc_platform=visual_studio", \
                       "data_packaging=archive", \
-                      "with_msys2=False", \
+                      "with_msys=False", \
                       "with_unit_tests=False"
 
     def requirements(self):
