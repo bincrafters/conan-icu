@@ -60,6 +60,7 @@ class IcuConan(ConanFile):
                "shared": [True, False],
                "msvc_platform": ["visual_studio", "cygwin", "msys"],
                "data_packaging": ["shared", "static", "files", "archive"],
+               "with_msys" : [True, False],
                "with_unit_tests": [True, False]}
 
     default_options = "with_io=False", \
@@ -67,7 +68,12 @@ class IcuConan(ConanFile):
                       "shared=True", \
                       "msvc_platform=visual_studio", \
                       "data_packaging=archive", \
+                      "with_msys=False", \
                       "with_unit_tests=False"
+                      
+    def requirements(self):
+        if self.options.with_msys:
+            self.requires.add("msys_installer/latest@bincrafters/stable")
 
     def source(self):
         archive_type = "zip"
@@ -167,12 +173,12 @@ class IcuConan(ConanFile):
 
                 cygwin_root_path = os.environ["CYGWIN_ROOT"].replace('\\', '/')
 
-                os.environ["PATH"] = r"C:\\Windows\\system32" + ";" + \
-                                     r"C:\\Windows" + ";" + \
-                                     r"C:\\Windows\\system32\Wbem" + ";" + \
-                                     cygwin_root_path + "/bin" + ";" + \
-                                     cygwin_root_path + "/usr/bin" + ";" + \
-                                     cygwin_root_path + "/usr/sbin"
+                os.environ["PATH"] = os.pathsep.join(r"C:\\Windows\\system32",
+                                     r"C:\\Windows", 
+                                     r"C:\\Windows\\system32\Wbem",
+                                     cygwin_root_path + "/bin",
+                                     cygwin_root_path + "/usr/bin",
+                                     cygwin_root_path + "/usr/sbin")
 
                 output_path = os.path.join(root_path, 'output')
                 root_path = root_path.replace('\\', '/')
@@ -193,7 +199,7 @@ class IcuConan(ConanFile):
                     "{0} && cd {1} && bash ../source/runConfigureICU {2} {3} --with-library-bits={4} --prefix={5} {6} {7} --disable-layout --disable-layoutex".format(
                         vcvars_command, b_path, enable_debug, platform, arch, output_path, enable_static,
                         data_packaging))
-                self.output.info("Starting built.")
+                self.output.info("Starting build.")
                 # do not use multiple CPUs with make (make -j X) as builds fail on Cygwin
                 self.run("{0} && cd {1} && make --silent".format(vcvars_command, b_path))
                 if self.options.with_unit_tests:
@@ -232,9 +238,11 @@ class IcuConan(ConanFile):
                 self.output.info("msys_root_path: " + msys_root_path)
                 self.output.info("msys_root_path/bin: " + os.path.join(msys_root_path, 'usr', 'bin'))
 
-                os.environ[
-                    "PATH"] = r"C:\\Windows\\system32" + ";" + r"C:\\Windows" + ";" + r"C:\\Windows\\system32\Wbem" + ";" + os.path.join(
-                    msys_root_path, 'usr', 'bin')
+                os.environ["PATH"] = os.pathsep.join(r"C:\\Windows\\system32",
+                            r"C:\\Windows",
+                            r"C:\\Windows\\system32\Wbem",
+                            os.path.join(msys_root_path, 'usr', 'bin')
+                            
                 self.output.info("PATH: " + os.environ["PATH"])
                 output_path = os.path.join(root_path, 'output')
                 root_path = root_path.replace('\\', '/')
