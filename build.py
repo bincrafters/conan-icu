@@ -28,9 +28,9 @@ if __name__ == "__main__":
         
     builder = ConanMultiPackager()
       
-    builder.add({"os" : platform.system().replace("Darwin", "Macos"), {"icu:shared": True, "icu:with_data": True})
-    builder.add({"os" : platform.system().replace("Darwin", "Macos"), {"icu:shared": True, "icu:with_data": False})
-    builder.add({"os" : platform.system().replace("Darwin", "Macos"), {"icu:shared": False, "icu:with_data": True})
-    builder.add({"os" : platform.system().replace("Darwin", "Macos"), {"icu:shared": False, "icu:with_data": False})
+    builder.add({"os" : platform.system().replace("Darwin", "Macos")}, {"icu:shared": True, "icu:with_data": True})
+    builder.add({"os" : platform.system().replace("Darwin", "Macos")}, {"icu:shared": True, "icu:with_data": False})
+    builder.add({"os" : platform.system().replace("Darwin", "Macos")}, {"icu:shared": False, "icu:with_data": True})
+    builder.add({"os" : platform.system().replace("Darwin", "Macos")}, {"icu:shared": False, "icu:with_data": False})
 
     builder.run()
