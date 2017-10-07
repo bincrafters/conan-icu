@@ -26,11 +26,17 @@ if __name__ == "__main__":
         os.environ["CONAN_UPLOAD"]="https://api.bintray.com/conan/{0}/public-conan".format(username)
         os.environ["CONAN_REMOTES"]="https://api.bintray.com/conan/{0}/public-conan".format(username)
         
+    os = platform.system().replace("Darwin", "Macos")
+
     builder = ConanMultiPackager()
-      
-    builder.add({"os" : platform.system().replace("Darwin", "Macos")}, {"icu:shared": True, "icu:with_data": True})
-    builder.add({"os" : platform.system().replace("Darwin", "Macos")}, {"icu:shared": True, "icu:with_data": False})
-    builder.add({"os" : platform.system().replace("Darwin", "Macos")}, {"icu:shared": False, "icu:with_data": True})
-    builder.add({"os" : platform.system().replace("Darwin", "Macos")}, {"icu:shared": False, "icu:with_data": False})
+    builder.add({"arch": "x86", "os" : os}, {"icu:shared": True, "icu:with_data": True})
+    builder.add({"arch": "x86", "os" : os}, {"icu:shared": True, "icu:with_data": False})
+    builder.add({"arch": "x86", "os" : os}, {"icu:shared": False, "icu:with_data": True})
+    builder.add({"arch": "x86", "os" : os}, {"icu:shared": False, "icu:with_data": False})
+                    
+    builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": True, "icu:with_data": True})
+    builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": True, "icu:with_data": False})
+    builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": False, "icu:with_data": True})
+    builder.add({"arch": "x86_64", "os" : os}, {"icu:shared": False, "icu:with_data": False})
 
     builder.run()

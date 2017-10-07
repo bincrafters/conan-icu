@@ -175,12 +175,12 @@ class IcuConan(ConanFile):
 
                 cygwin_root_path = os.environ["CYGWIN_ROOT"].replace('\\', '/')
 
-                os.environ["PATH"] = os.pathsep.join(r"C:\\Windows\\system32",
+                os.environ["PATH"] = os.pathsep.join([r"C:\\Windows\\system32",
                                                      r"C:\\Windows",
                                                      r"C:\\Windows\\system32\Wbem",
                                                      cygwin_root_path + "/bin",
                                                      cygwin_root_path + "/usr/bin",
-                                                     cygwin_root_path + "/usr/sbin")
+                                                     cygwin_root_path + "/usr/sbin"])
 
                 output_path = os.path.join(root_path, 'output')
                 root_path = root_path.replace('\\', '/')
