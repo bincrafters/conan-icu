@@ -15,7 +15,7 @@ import shutil
 #
 # If you're building with MSYS, the environment variable MSYS_ROOT must be present or specified via the command line
 #
-# If you want Conan to download and provide MSYS, the "with_msys2" option will handle everything related to MSYS
+# If you want Conan to download and provide MSYS, the "with_msys" option will handle everything related to MSYS
 #
 # examples:
 #
@@ -62,7 +62,7 @@ class IcuConan(ConanFile):
                "shared": [True, False],
                "msvc_platform": ["visual_studio", "cygwin", "msys"],
                "data_packaging": ["shared", "static", "files", "archive"],
-               "with_msys2": [True, False],
+               "with_msys": [True, False],
                "with_unit_tests": [True, False]}
 
     default_options = "with_io=False", \
