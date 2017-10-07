@@ -62,7 +62,7 @@ class IcuConan(ConanFile):
                "shared": [True, False],
                "msvc_platform": ["visual_studio", "cygwin", "msys"],
                "data_packaging": ["shared", "static", "files", "archive"],
-               "with_msys": [True, False],
+               "with_msys2": [True, False],
                "with_unit_tests": [True, False]}
 
     default_options = "with_io=False", \
