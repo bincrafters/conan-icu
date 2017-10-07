@@ -297,15 +297,11 @@ class IcuConan(ConanFile):
                 self.run(command)
                 cfg = 'x64' if self.settings.arch == 'x86_64' else 'x86'
                 cfg += "\\" + str(self.settings.build_type)
-                data_dir = src_path + "\\data"
-                bin_dir = data_dir + "\\..\\..\\bin"
-                if self.settings.arch == 'x86_64':
-                    bin_dir += '64'
 
                 if self.options.with_data:
                     makedata = '{vcvars} && cd {datadir} && nmake /a /f makedata.mak ICUMAKE="{datadir}" CFG={cfg}'.format(
                     vcvars=vcvars_command,
-                    datadir=data_dir,
+                    datadir=dst_datadir,
                     cfg=cfg)
                     self.output.info(makedata)
                     self.run(makedata)
