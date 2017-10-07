@@ -302,12 +302,13 @@ class IcuConan(ConanFile):
                 if self.settings.arch == 'x86_64':
                     bin_dir += '64'
 
-                makedata = '{vcvars} && cd {datadir} && nmake /a /f makedata.mak ICUMAKE="{datadir}" CFG={cfg}'.format(
+                if self.options.with_data:
+                    makedata = '{vcvars} && cd {datadir} && nmake /a /f makedata.mak ICUMAKE="{datadir}" CFG={cfg}'.format(
                     vcvars=vcvars_command,
                     datadir=data_dir,
                     cfg=cfg)
-                self.output.info(makedata)
-                self.run(makedata)
+                    self.output.info(makedata)
+                    self.run(makedata)
         else:
             env_build = AutoToolsBuildEnvironment(self)
             with tools.environment_append(env_build.vars):
