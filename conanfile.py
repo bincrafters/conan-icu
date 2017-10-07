@@ -239,10 +239,10 @@ class IcuConan(ConanFile):
                 self.output.info("msys_root_path: " + msys_root_path)
                 self.output.info("msys_root_path/bin: " + os.path.join(msys_root_path, 'usr', 'bin'))
 
-                os.environ["PATH"] = os.pathsep.join(r"C:\\Windows\\system32",
+                os.environ["PATH"] = os.pathsep.join([r"C:\\Windows\\system32",
                                                      r"C:\\Windows",
                                                      r"C:\\Windows\\system32\Wbem",
-                                                     os.path.join(msys_root_path, 'usr', 'bin'))
+                                                     os.path.join(msys_root_path, 'usr', 'bin')])
 
                 self.output.info("PATH: " + os.environ["PATH"])
                 output_path = os.path.join(root_path, 'output')
