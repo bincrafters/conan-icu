@@ -72,7 +72,7 @@ class IcuConan(ConanFile):
                       "with_unit_tests=False"
 
     def requirements(self):
-        if self.options["with_msys"]:
+        if self.options.with_msys:
             self.requires.add("msys_installer/latest@bincrafters/stable")
 
     def source(self):
