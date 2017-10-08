@@ -26,8 +26,6 @@ if __name__ == "__main__":
         os.environ["CONAN_UPLOAD"]="https://api.bintray.com/conan/{0}/public-conan".format(username)
         os.environ["CONAN_REMOTES"]="https://api.bintray.com/conan/{0}/public-conan".format(username)
         
-    os = platform.system().replace("Darwin", "Macos")
-
     os.environ["CONAN_ARCHS"] = "x86, x86_64"
     
     builder = ConanMultiPackager()
