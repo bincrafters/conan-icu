@@ -52,11 +52,6 @@ class IcuConan(ConanFile):
     description = "ICU is a mature, widely used set of C/C++ and Java libraries providing Unicode and Globalization support for software applications."
     url = "https://github.com/bincrafters/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
-    source_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src".format(version,
-                                                                                        version.replace('.', '_'))
-    data_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-data".format(version,
-                                                                                       version.replace('.', '_'))
-
     options = {"with_io": [True, False],
                "with_data": [True, False],
                "shared": [True, False],
@@ -78,58 +73,58 @@ class IcuConan(ConanFile):
             self.requires.add("msys2_installer/latest@bincrafters/stable")
 
     def source(self):
-        archive_type = "zip"
-        if self.settings.os != 'Windows' or self.options.msvc_platform != 'visual_studio':
+        icu_url =  "http://download.icu-project.org/files/icu4c"
+        version_underscore = self.version.replace('.', '_')
+        source_url = "{0}/{1}/icu4c-{2}-src".format(icu_url, self.version, version_underscore)
+        data_url = "{0}/{1}/icu4c-{2}-data.zip".format(icu_url, self.version, version_underscore)
+        
+        # .zip file for windows comes with data already
+        if self.settings.os == 'Windows' and self.options.msvc_platform == 'visual_studio':
+            archive_type = "zip"
+        else:
             archive_type = "tgz"
-
-        self.output.info("Fetching sources: {0}.{1}".format(self.source_url, archive_type))
-
-        tools.get("{0}.{1}".format(self.source_url, archive_type))
-        tools.download(r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD',
-                       'config.guess')
-        tools.download(r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD',
-                       'config.sub')
-
-        if self.options.with_data:
-            tools.get("{0}.zip".format(self.data_url))
+            if self.options.with_data:
+                self.output.info("Fetching data: {0}".format(data_url))
+                tools.get("{0}".format(data_url))
+           
+        
+        self.output.info("Using archive type: {0}".format(archive_type))
+        self.output.info("Fetching sources: {0}.{1}".format(source_url, archive_type))
+        tools.get("{0}.{1}".format(source_url, archive_type))
+        
+        config_guess_url = r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
+        self.output.info("Fetching config file: {0}.{1}".format(source_url, archive_type))
+        tools.download(config_guess_url, 'config.guess')
+        
+        config_sub_url = r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
+        self.output.info("Fetching sources: {0}.{1}".format(source_url, archive_type))
+        tools.download(config_sub_url, 'config.sub')
 
     def build(self):
         root_path = self.conanfile_directory
         src_path = os.path.join(root_path, self.name, 'source')
-
+        data_path = os.path.join(src_path, 'data')
+        
+        if self.options.with_data and self.settings.os != 'Windows' and self.options.msvc_platform != 'visual_studio':
+            # Tarball has incomplete data dir, replacing it with the downloaded data
+            os.unlink(data_path) 
+            os.rename(os.path.join(root_path,'data'), data_path)
+            
         if self.options.with_data:
-            # We add the whole data within the source tree
-            src_datadir = os.path.join(root_path, 'data')
-            dst_datadir = os.path.join(src_path, 'data')
-
-            os.rename(dst_datadir, dst_datadir + "-bak")
-            os.rename(src_datadir, dst_datadir)
-        else:
             tools.replace_in_file(
-                os.path.join(src_path, 'data', 'makedata.mak'),
+                os.path.join(data_path, 'makedata.mak'),
                 r'GODATA "$(ICU_LIB_TARGET)" "$(TESTDATAOUT)\testdata.dat"',
                 r'GODATA "$(ICU_LIB_TARGET)"')
 
-        # to be improved
         src_config_guess = os.path.join(root_path, 'config.guess')
-        src_config_sub = os.path.join(root_path, 'config.sub')
-
-        dst_config_guess = os.path.join(root_path, self.name, 'source', 'config.guess')
-        dst_config_sub = os.path.join(root_path, self.name, 'source', 'config.sub')
-
-        if os.path.isfile(dst_config_guess):
-            os.remove(dst_config_guess)
-
-        if os.path.isfile(dst_config_sub):
-            os.remove(dst_config_sub)
-
+        dst_config_guess = os.path.join(src_path, 'config.guess')
+        self.output.info("Copying from {0} to {1}".format(src_config_guess, dst_config_guess))
         shutil.copy(src_config_guess, dst_config_guess)
-        shutil.copy(src_config_sub, dst_config_sub)
 
-        self.output.info("Copy src: " + src_config_guess)
-        self.output.info("Copy dst: " + dst_config_guess)
-        self.output.info("Copy src: " + src_config_sub)
-        self.output.info("Copy dst: " + dst_config_sub)
+        src_config_sub = os.path.join(root_path, 'config.sub')
+        dst_config_sub = os.path.join(src_path, 'config.sub')
+        self.output.info("Copying from {0} to {1}".format(src_config_sub, dst_config_sub))
+        shutil.copy(src_config_sub, dst_config_sub)
 
         # This handles the weird case of using ICU sources for Windows on a Unix environment, and vice-versa
         # this is primarily aimed at builds using Cygwin/MSVC which require unix line endings
@@ -182,11 +177,10 @@ class IcuConan(ConanFile):
                                                      cygwin_root_path + "/usr/bin",
                                                      cygwin_root_path + "/usr/sbin"])
 
-                output_path = os.path.join(root_path, 'output')
+                output_path = os.path.join(root_path, 'output').replace('\\', '/')
                 root_path = root_path.replace('\\', '/')
-                output_path = output_path.replace('\\', '/')
 
-                configfile = os.path.join(root_path, self.name, 'source', 'runConfigureICU')
+                configfile = os.path.join(src_path, 'runConfigureICU')
                 runtime = self.settings.compiler.runtime
                 if self.settings.build_type == 'Release':
                     tools.replace_in_file(configfile, "-MD", "-%s" % runtime)
@@ -239,17 +233,17 @@ class IcuConan(ConanFile):
                 self.output.info("msys_root_path: " + msys_root_path)
                 self.output.info("msys_root_path/bin: " + os.path.join(msys_root_path, 'usr', 'bin'))
 
-                os.environ["PATH"] = os.pathsep.join([r"C:\\Windows\\system32",
-                                                     r"C:\\Windows",
-                                                     r"C:\\Windows\\system32\Wbem",
-                                                     os.path.join(msys_root_path, 'usr', 'bin')])
+                os.environ["PATH"] = os.pathsep.join([os.environ["PATH"], 
+                                                    r"C:\\Windows\\system32",
+                                                    r"C:\\Windows",
+                                                    r"C:\\Windows\\system32\Wbem",
+                                                    os.path.join(msys_root_path, 'usr', 'bin')])
 
-                self.output.info("PATH: " + os.environ["PATH"])
-                output_path = os.path.join(root_path, 'output')
+                self.output.info("Appended PATH: " + os.environ["PATH"])
+                output_path = os.path.join(root_path, 'output').replace('\\', '/')
                 root_path = root_path.replace('\\', '/')
-                output_path = output_path.replace('\\', '/')
 
-                configfile = os.path.join(root_path, self.name, 'source', 'runConfigureICU')
+                configfile = os.path.join(src_path, 'runConfigureICU')
                 runtime = self.settings.compiler.runtime
                 if self.settings.build_type == 'Release':
                     tools.replace_in_file(configfile, "-MD", "-%s" % runtime)
@@ -275,7 +269,7 @@ class IcuConan(ConanFile):
                 #
                 # We patch the respective Makefile.in, to disable building it for MSYS
                 #
-                escapesrc_patch = os.path.join(root_path, self.name, 'source', 'tools', 'Makefile.in')
+                escapesrc_patch = os.path.join(src_path, 'tools', 'Makefile.in')
                 tools.replace_in_file(escapesrc_patch, 'SUBDIRS += escapesrc',
                                       '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
 
@@ -299,9 +293,9 @@ class IcuConan(ConanFile):
                 cfg += "\\" + str(self.settings.build_type)
 
                 if self.options.with_data:
-                    makedata = '{vcvars} && cd {datadir} && nmake /a /f makedata.mak ICUMAKE="{datadir}" CFG={cfg}'.format(
+                    makedata = '{vcvars} && cd {data_path} && nmake /a /f makedata.mak ICUMAKE="{data_path}" CFG={cfg}'.format(
                     vcvars=vcvars_command,
-                    datadir=dst_datadir,
+                    data_path=data_path,
                     cfg=cfg)
                     self.output.info(makedata)
                     self.run(makedata)
@@ -335,8 +329,7 @@ class IcuConan(ConanFile):
                 if self.settings.os == 'Macos':
                     with tools.chdir('output/lib'):
                         for dylib in glob.glob('*icu*.{0}.dylib'.format(self.version)):
-                            self.run('install_name_tool -id {0} {1}'.format(
-                                os.path.basename(dylib), dylib))
+                            self.run('install_name_tool -id {0} {1}'.format(os.path.basename(dylib), dylib))
 
     def package(self):
         # self.options.msvc_platform = 'cygwin'
@@ -400,7 +393,8 @@ class IcuConan(ConanFile):
         if keep:
             self.cpp_info.libs.append('icudata')
 
-        self.env_info.path.append(os.path.join(self.package_folder, "bin"))
+        self.env_info.path.append(os.path.join(self.package_folder, "lib"))
+        
 
         if not self.options.shared:
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
