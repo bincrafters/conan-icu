@@ -30,8 +30,7 @@
 
 # Directories
 __pycache__
-init.bat
-upload.bat
+*.pyc
 build*/
 bin*
 .vs
