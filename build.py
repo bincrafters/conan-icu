@@ -27,8 +27,8 @@ if __name__ == "__main__":
         os.environ["CONAN_REMOTES"]="https://api.bintray.com/conan/{0}/public-conan".format(username)
     
     builder = ConanMultiPackager()
-    builder.add(settings={arch=os.environ["CONAN_ARCHS"]}, options={"icu:shared": True, "icu:with_data": True})
-    builder.add(settings={arch=os.environ["CONAN_ARCHS"]}, options={"icu:shared": True, "icu:with_data": False})
-    builder.add(settings={arch=os.environ["CONAN_ARCHS"]}, options={"icu:shared": False, "icu:with_data": True})
-    builder.add(settings={arch=os.environ["CONAN_ARCHS"]}, options={"icu:shared": False, "icu:with_data": False})
+    builder.add(settings={"arch":os.environ["CONAN_ARCHS"]}, options={"icu:shared": True, "icu:with_data": True})
+    builder.add(settings={"arch":os.environ["CONAN_ARCHS"]}, options={"icu:shared": True, "icu:with_data": False})
+    builder.add(settings={"arch":os.environ["CONAN_ARCHS"]}, options={"icu:shared": False, "icu:with_data": True})
+    builder.add(settings={"arch":os.environ["CONAN_ARCHS"]}, options={"icu:shared": False, "icu:with_data": False})
     builder.run()
