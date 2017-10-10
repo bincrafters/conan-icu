@@ -401,3 +401,6 @@ class IcuConan(ConanFile):
 
             if self.settings.os == 'Linux':
                 self.cpp_info.libs.append('dl')
+
+    def package_id(self):
+        self.info.options.with_unit_tests = "any"
