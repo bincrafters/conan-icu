@@ -68,9 +68,9 @@ class IcuConan(ConanFile):
                       "with_msys=False", \
                       "with_unit_tests=False"
 
-    def requirements(self):
+    def build_requirements(self):
         if self.options.with_msys:
-            self.requires.add("msys2_installer/latest@bincrafters/stable")
+            self.build_requires("msys2_installer/latest@bincrafters/stable")
 
     def source(self):
         icu_url =  "http://download.icu-project.org/files/icu4c"
