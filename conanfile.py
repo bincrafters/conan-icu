@@ -35,9 +35,9 @@ class IcuConan(ConanFile):
                "data_packaging": ["shared", "static", "files", "archive"]}
 
     default_options = "with_data=False", \
-                      "with_msys=True"
+                      "with_msys=True", \
                       "shared=True", \
-                      "data_packaging=archive", \
+                      "data_packaging=archive"
     
     def config_options(self):
         if self.settings.os != "Windows":
