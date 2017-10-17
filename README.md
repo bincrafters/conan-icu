@@ -35,13 +35,10 @@ Note: It is recommended that you run conan install from a build directory and no
 This package has the following options: 
 
 |Option Name		 | Default Values   | Possible Value                      | Description
-|---------------------|-------------------|----------------------------------------------------------
+|---------------------|-------------------|---------------------------------|------------------------
 |shared					 | True                  | True/False                            | Use as a shared library or static library
-|with_io				 | False                 | True/False                            | Compile the ICU Ustdio/iostream library
-|with_unit_tests	 | False                 | True/False                            | Run the ICU unit tests before compiling
 |with_data			 | False                 | True/False                            | Build the ICU sample data with default settings. 
 |with_msys			 | False                 | True/False                            | Supplies the MSYS Conan package to use at build time
-|msvc_platform	 | visual_studio     | visual_studio, cygwin, msys  | Choose an alternate compiler front-end
 |data_packaging	 | archive             | shared, static, files, archive   | See [ICU Data Packaging documentation](http://userguide.icu-project.org/packaging)
 
 ## For Packagers: Publish this Package
