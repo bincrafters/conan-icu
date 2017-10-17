@@ -100,15 +100,15 @@ class IcuConan(ConanFile):
         dst_config_sub = os.path.join(src_path, 'config.sub')
         self.output.info("Copying from {0} to {1}".format(src_config_sub, dst_config_sub))
         shutil.copy(src_config_sub, dst_config_sub)
-
+                        
+        arch = '64' if self.settings.arch == 'x86_64' else '32'
+        enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
+        enable_static = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
+        data_packaging = '--with-data-packaging={0}'.format(self.options.data_packaging)
+        
         if self.settings.os == 'Windows':
             vcvars_command = tools.vcvars_command(self.settings)
             platform = 'MSYS/MSVC'
-
-            arch = '64' if self.settings.arch == 'x86_64' else '32'
-            enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
-            enable_static = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
-            data_packaging = '--with-data-packaging={0}'.format(self.options.data_packaging)
 
             with tools.chdir(src_path):
                 bash = "%MSYS_ROOT%\\usr\\bin\\bash"
@@ -170,31 +170,20 @@ class IcuConan(ConanFile):
                         platform = 'Linux'
                 elif self.settings.os == 'Macos':
                     platform = 'MacOSX'
-
-                arch = '64' if self.settings.arch == 'x86_64' else '32'
-                enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
-                enable_static = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
-                data_packaging = '--with-data-packaging={0}'.format(self.options.data_packaging)
-
-                build_path = os.path.join(self.build_folder, 'icu', 'build')
-                os.mkdir(build_path)
-
-                output_path = os.path.join(self.build_folder, 'output')
-
-                self.run(("cd {build_path} && bash ../source/runConfigureICU {enable_debug} {platform} "
-                    "--with-library-bits={arch} --prefix={output_path} {enable_static} {data_packaging} "
-                    "--disable-layout --disable-layoutex").format(
-                        build_path=build_path, 
-                        enable_debug=enable_debug, 
-                        platform=platform, 
-                        arch=arch, 
-                        output_path=output_path, 
-                        enable_static=enable_static, 
-                        data_packaging=data_packaging))
-                        
-                self.run("cd {build_path} && make --silent -j {cpu_count} install".format(
-                    build_path=build_path, 
-                    cpu_count=tools.cpu_count()))
+                
+                with tools.chdir(build_path):
+                    self.run(("bash ../source/runConfigureICU {enable_debug} {platform} "
+                        "--with-library-bits={arch} --prefix={output_path} {enable_static} {data_packaging} "
+                        "--disable-layout --disable-layoutex").format(
+                            enable_debug=enable_debug, 
+                            platform=platform, 
+                            arch=arch, 
+                            output_path=output_path, 
+                            enable_static=enable_static, 
+                            data_packaging=data_packaging))
+                            
+                    self.run("make --silent -j {cpu_count} install".format(
+                        cpu_count=tools.cpu_count()))
 
                 if self.settings.os == 'Macos':
                     with tools.chdir('output/lib'):
@@ -253,3 +242,6 @@ class IcuConan(ConanFile):
 
             if self.settings.os == 'Linux':
                 self.cpp_info.libs.append('dl')
+
+    def package_id(self):
+        self.info.options.with_msys = "any" 
