@@ -30,9 +30,9 @@ class IcuConan(ConanFile):
     url = "https://github.com/bincrafters/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
     options = {"with_data": [True, False],
-               "with_msys": [True, False]}
+               "with_msys": [True, False],
                "shared": [True, False],
-               "data_packaging": ["shared", "static", "files", "archive"],
+               "data_packaging": ["shared", "static", "files", "archive"]}
 
     default_options = "with_data=False", \
                       "with_msys=True"
