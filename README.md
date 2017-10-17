@@ -35,7 +35,7 @@ Note: It is recommended that you run conan install from a build directory and no
 This package has the following options: 
 
 |Option Name		 | Default Values   | Possible Value                      | Description
-|---------------------|-------------------|----------------------------------------------------------
+|---------------------|-------------------|---------------------------------|------------------------
 |shared					 | True                  | True/False                            | Use as a shared library or static library
 |with_io				 | False                 | True/False                            | Compile the ICU Ustdio/iostream library
 |with_unit_tests	 | False                 | True/False                            | Run the ICU unit tests before compiling
