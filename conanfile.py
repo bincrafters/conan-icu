@@ -38,12 +38,16 @@ class IcuConan(ConanFile):
                       "shared=True", \
                       "data_packaging=archive", \
                       "with_msys=True"
+    
+    def configure(self):
+        if self.settings.os != 'Windows':
+            "with_msys=False"            
 
     def build_requirements(self):
         if self.options.with_msys:
             self.build_requires("msys2_installer/latest@bincrafters/stable")
-        elif 'MSYS_ROOT' not in os.environ:
-            raise Exception("MSYS_ROOT must exist in your environment variables if not using the msys2 package.")        
+        elif self.settings.os == 'Windows' and 'MSYS_ROOT' not in os.environ:
+            raise Exception("MSYS_ROOT environment variable must exist if with_msys=False.")        
 
     def source(self):
         icu_url =  "http://download.icu-project.org/files/icu4c"
