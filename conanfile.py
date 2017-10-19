@@ -4,24 +4,6 @@ import glob
 import shutil
 
 
-#
-# Refer to http://userguide.icu-project.org/icudata for the data_packaging option
-#
-# Specifying the conan option: `-o icu:with_data=True` to fetch the complete ICU data package, at the expense of size
-#
-# Specifying the conan option: `-o icu:with_msys=False` to use an existing install of MSYS2
-#
-# The default is to download and use the MSYS2 Conan package 
-# 
-# Example: Create a static debug build with data, on a system which has MSYS2, specifying the path to MSYS_ROOT
-#
-#    conan create <yourname>/icu -o icu:with_data=True -o:with_msys=False -e MSYS_ROOT=D:\dev\msys64
-#
-# Example: Create a dynamic runtime build with data on a system and use the MSYS2 Conan package
-#
-#    conan create <yourname>/icu -o icu:with_msys -o icu:with_data=True
-#
-
 class IcuConan(ConanFile):
     name = "icu"
     version = "59.1"
@@ -38,7 +20,7 @@ class IcuConan(ConanFile):
                       "with_msys=True", \
                       "shared=True", \
                       "data_packaging=archive"
-    
+
     def config_options(self):
         if self.settings.os != "Windows":
             self.options.with_msys = "False"
@@ -49,6 +31,7 @@ class IcuConan(ConanFile):
         elif self.settings.os == 'Windows' and 'MSYS_ROOT' not in os.environ:
             raise Exception("MSYS_ROOT environment variable must exist if with_msys=False.")        
 
+
     def source(self):
         icu_url =  "http://download.icu-project.org/files/icu4c"
         version_underscore = self.version.replace('.', '_')
@@ -56,12 +39,17 @@ class IcuConan(ConanFile):
         data_url = "{0}/{1}/icu4c-{2}-data.zip".format(icu_url, self.version, version_underscore)
         
         archive_type = "tgz"
-        if self.options.with_data:
-            self.output.info("Fetching data: {0}".format(data_url))
-            tools.get("{0}".format(data_url))
-           
         self.output.info("Fetching sources: {0}.{1}".format(source_url, archive_type))
         tools.get("{0}.{1}".format(source_url, archive_type))
+
+        if self.options.with_data:
+            data_path = os.path.join('icu', 'source', 'data')
+            self.output.info("Deleting incomplete data folder from icu sources: {0}".format(data_url))
+            shutil.rmtree(data_path) 
+            self.output.info("Fetching data: {0}".format(data_url))
+            tools.get(data_url)                
+            self.output.info("Moving data from {0} to {1}".format('data', data_path))
+            os.rename('data', data_path)
         
         config_guess_url = r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
         self.output.info("Fetching config file: {0}.{1}".format(source_url, archive_type))
@@ -70,20 +58,30 @@ class IcuConan(ConanFile):
         config_sub_url = r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
         self.output.info("Fetching sources: {0}.{1}".format(source_url, archive_type))
         tools.download(config_sub_url, 'config.sub')
-
+        if self.settings.os == 'Windows':
+            # Prevent multiple CL.EXE writes to the same .PDB file (use /FS)        
+            runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
+            tools.replace_in_file(runConfigureICU_file, 
+            '        DEBUG_CFLAGS=\'-Zi -MDd\'\n', 
+            '        DEBUG_CFLAGS=\'-Zi -MDd -FS\'\n', strict=True)
+            
+            tools.replace_in_file(runConfigureICU_file, 
+            '        DEBUG_CXXFLAGS=\'-Zi -MDd\'\n', 
+            '        DEBUG_CXXFLAGS=\'-Zi -MDd -FS\'\n', strict=True)
+            
+        else:
+            # This allows building ICU with multiple gcc compilers (overrides fixed compiler name)
+            runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
+            tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
+            tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)
+            
     def build(self):
         src_path = os.path.join(self.build_folder, 'icu', 'source')
         data_path = os.path.join(src_path, 'data')
         output_path = os.path.join(self.build_folder, 'output')
         build_path = os.path.join(self.build_folder, 'icu', 'build')
+        
         os.mkdir(build_path)
-                
-        if self.options.with_data:
-            # Tarball has incomplete data dir, replacing it with the downloaded data
-            shutil.rmtree(data_path) 
-            tmp_data_path = os.path.join(self.build_folder, 'data')
-            self.output.info("Moving data from {0} to {1}".format(tmp_data_path, data_path))
-            os.rename(tmp_data_path, data_path)
             
         if self.options.with_data:
             tools.replace_in_file(
@@ -109,11 +107,11 @@ class IcuConan(ConanFile):
         if self.settings.os == 'Windows':
             vcvars_command = tools.vcvars_command(self.settings)
             platform = 'MSYS/MSVC'
+            bash = "%MSYS_ROOT%\\usr\\bin\\bash"
+            runtime = self.settings.compiler.runtime
 
             with tools.chdir(src_path):
-                bash = "%MSYS_ROOT%\\usr\\bin\\bash"
                 configfile = "runConfigureICU"
-                runtime = self.settings.compiler.runtime
                 if self.settings.build_type == 'Release':
                     tools.replace_in_file(configfile, "-MD", "-%s" % runtime)
                 if self.settings.build_type == 'Debug':
