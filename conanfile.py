@@ -6,7 +6,7 @@ import shutil
 
 class IcuConan(ConanFile):
     name = "icu"
-    version = "59.1"
+    version = "60.1"
     license = "http://www.unicode.org/copyright.html#License"
     description = "ICU is a mature, widely used set of C/C++ and Java libraries providing Unicode and Globalization support for software applications."
     url = "https://github.com/bincrafters/conan-icu"
