@@ -1,3 +1,7 @@
+# Misc files (Logfiles, html)
+*.log
+*.html
+
 # Compiled Object files
 *.slo
 *.lo
@@ -29,8 +33,10 @@
 *.app
 
 # Directories
+.idea
 __pycache__
-*.pyc
+init.bat
+upload.bat
 build*/
 bin*
 .vs

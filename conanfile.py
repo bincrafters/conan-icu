@@ -1,245 +1,319 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#
+# Changelog
+#
+# v60.2
+#
+# - Incomplete data of ICU fixed upstream
+#   Ticket http://bugs.icu-project.org/trac/ticket/13139
+#
+#
+
 from conans import ConanFile, tools, AutoToolsBuildEnvironment
 import os
 import glob
-import shutil
-
 
 class IcuConan(ConanFile):
     name = "icu"
-    version = "59.1"
+    version = "60.2"
+    homepage = "http://site.icu-project.org"
     license = "http://www.unicode.org/copyright.html#License"
-    description = "ICU is a mature, widely used set of C/C++ and Java libraries providing Unicode and Globalization support for software applications."
-    url = "https://github.com/bincrafters/conan-icu"
+    description = "ICU is a mature, widely used set of C/C++ and Java libraries " \
+                  "providing Unicode and Globalization support for software applications."
+    url = "https://github.com/sigmoidal/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
-    options = {"with_data": [True, False],
-               "with_msys": [True, False],
-               "shared": [True, False],
-               "data_packaging": ["shared", "static", "files", "archive"]}
+    source_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src".format(version,version.replace('.', '_'))
+    data_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-data".format(version,version.replace('.', '_'))
 
-    default_options = "with_data=False", \
-                      "with_msys=True", \
-                      "shared=True", \
-                      "data_packaging=archive"
+    exports_sources = [ "patches/*.patch" ]
 
-    def config_options(self):
-        if self.settings.os != "Windows":
-            self.options.with_msys = "False"
+    options = {"shared": [True, False],
+               "data_packaging": [ "files", "archive", "library", "static" ],
+               "with_unit_tests": [True, False],
+               "silent": [True, False]}
+
+    default_options = "shared=True", \
+                      "data_packaging=archive", \
+                      "with_unit_tests=False", \
+                      "silent=True"
+    
+    # Dictionary storing strings useful for setting up the configuration and make command lines
+    cfg = { 'enable_debug': '', 
+            'platform': '', 
+            'host': '', 
+            'arch_bits': '',
+            'output_dir': '', 
+            'enable_static': '', 
+            'data_packaging': '', 
+            'general_opts': '' }
 
     def build_requirements(self):
-        if self.options.with_msys:
-            self.build_requires("msys2_installer/latest@bincrafters/stable")
-        elif self.settings.os == 'Windows' and 'MSYS_ROOT' not in os.environ:
-            raise Exception("MSYS_ROOT environment variable must exist if with_msys=False.")        
+        if self.settings.os == "Windows":
+            self.build_requires("cygwin_installer/2.9.0@bincrafters/stable")
+            if self.settings.compiler != "Visual Studio":
+                self.build_requires("mingw_installer/1.0@conan/stable")
 
+    def configure(self):
+        if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
+            self.settings.compiler.libcxx = 'libstdc++11'
 
     def source(self):
-        icu_url =  "http://download.icu-project.org/files/icu4c"
-        version_underscore = self.version.replace('.', '_')
-        source_url = "{0}/{1}/icu4c-{2}-src".format(icu_url, self.version, version_underscore)
-        data_url = "{0}/{1}/icu4c-{2}-data.zip".format(icu_url, self.version, version_underscore)
-        
-        archive_type = "tgz"
-        self.output.info("Fetching sources: {0}.{1}".format(source_url, archive_type))
-        tools.get("{0}.{1}".format(source_url, archive_type))
+        self.output.info("Fetching sources: {0}.tgz".format(self.source_url))
+        tools.get("{0}.tgz".format(self.source_url))
+        os.rename(self.name, 'sources')
 
-        if self.options.with_data:
-            data_path = os.path.join('icu', 'source', 'data')
-            self.output.info("Deleting incomplete data folder from icu sources: {0}".format(data_url))
-            shutil.rmtree(data_path) 
-            self.output.info("Fetching data: {0}".format(data_url))
-            tools.get(data_url)                
-            self.output.info("Moving data from {0} to {1}".format('data', data_path))
-            os.rename('data', data_path)
-        
-        config_guess_url = r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
-        self.output.info("Fetching config file: {0}.{1}".format(source_url, archive_type))
-        tools.download(config_guess_url, 'config.guess')
-        
-        config_sub_url = r'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
-        self.output.info("Fetching sources: {0}.{1}".format(source_url, archive_type))
-        tools.download(config_sub_url, 'config.sub')
-        if self.settings.os == 'Windows':
-            # Prevent multiple CL.EXE writes to the same .PDB file (use /FS)        
-            runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
-            tools.replace_in_file(runConfigureICU_file, 
-            '        DEBUG_CFLAGS=\'-Zi -MDd\'\n', 
-            '        DEBUG_CFLAGS=\'-Zi -MDd -FS\'\n', strict=True)
-            
-            tools.replace_in_file(runConfigureICU_file, 
-            '        DEBUG_CXXFLAGS=\'-Zi -MDd\'\n', 
-            '        DEBUG_CXXFLAGS=\'-Zi -MDd -FS\'\n', strict=True)
-            
-        else:
-            # This allows building ICU with multiple gcc compilers (overrides fixed compiler name)
-            runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
-            tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
-            tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)
-            
     def build(self):
-        src_path = os.path.join(self.build_folder, 'icu', 'source')
-        data_path = os.path.join(src_path, 'data')
-        output_path = os.path.join(self.build_folder, 'output')
-        build_path = os.path.join(self.build_folder, 'icu', 'build')
-        
-        os.mkdir(build_path)
-            
-        if self.options.with_data:
-            tools.replace_in_file(
-                os.path.join(data_path, 'makedata.mak'),
-                r'GODATA "$(ICU_LIB_TARGET)" "$(TESTDATAOUT)\testdata.dat"',
-                r'GODATA "$(ICU_LIB_TARGET)"')
+        self.update_config_files()
 
-        src_config_guess = os.path.join(self.build_folder, 'config.guess')
-        dst_config_guess = os.path.join(src_path, 'config.guess')
-        self.output.info("Copying from {0} to {1}".format(src_config_guess, dst_config_guess))
-        shutil.copy(src_config_guess, dst_config_guess)
+        patchfiles =  [
+                        # see ICU Ticket: http://bugs.icu-project.org/trac/ticket/13469
+                        # slated for inclusion in v61m1
+                        'icu-60.1-msvc-escapesrc.patch',
+                        '0014-mingwize-pkgdata.mingw.patch',
+                        '0020-workaround-missing-locale.patch' ]
 
-        src_config_sub = os.path.join(self.build_folder, 'config.sub')
-        dst_config_sub = os.path.join(src_path, 'config.sub')
-        self.output.info("Copying from {0} to {1}".format(src_config_sub, dst_config_sub))
-        shutil.copy(src_config_sub, dst_config_sub)
-                        
-        arch = '64' if self.settings.arch == 'x86_64' else '32'
-        enable_debug = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
-        enable_static = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
-        data_packaging = '--with-data-packaging={0}'.format(self.options.data_packaging)
-        
-        if self.settings.os == 'Windows':
-            vcvars_command = tools.vcvars_command(self.settings)
-            platform = 'MSYS/MSVC'
-            bash = "%MSYS_ROOT%\\usr\\bin\\bash"
-            runtime = self.settings.compiler.runtime
+        if self.settings.compiler != 'Visual Studio' and self.settings.os == 'Windows':
+            self.apply_patches(patchfiles)
 
-            with tools.chdir(src_path):
-                configfile = "runConfigureICU"
-                if self.settings.build_type == 'Release':
-                    tools.replace_in_file(configfile, "-MD", "-%s" % runtime)
-                if self.settings.build_type == 'Debug':
-                    tools.replace_in_file(configfile, "-MDd", "-%s -FS" % runtime)
-                
-                self.run(("{vcvars_command} && {bash} -c ^'./{configfile}"
-                    " {enable_debug} {platform} --host=i686-pc-mingw{arch} --build=i686-pc-mingw{arch} --with-library-bits={arch}"
-                    " --prefix={output_path} {enable_static} {data_packaging} --disable-layout --disable-layoutex^'").format(
-                        vcvars_command=vcvars_command, 
-                        bash=bash,
-                        configfile=configfile,
-                        enable_debug=enable_debug, 
-                        platform=platform, 
-                        arch=arch, 
-                        output_path=tools.unix_path(output_path),
-                        enable_static=enable_static, 
-                        data_packaging=data_packaging))
+        if self.settings.compiler == 'Visual Studio':
+            runConfigureICU_file = os.path.join('sources', 'source','runConfigureICU')
 
-                # There is a fragment in Makefile.in:22 of ICU that prevents from building with MSYS:
-                #
-                # ifneq (@platform_make_fragment_name@,mh-cygwin-msvc)
-                # SUBDIRS += escapesrc
-                # endif
-                #
-                # We patch the respective Makefile.in, to disable building it for MSYS
-                #
-                escapesrc_patch = os.path.join('tools', 'Makefile.in')
-                tools.replace_in_file(escapesrc_patch, 'SUBDIRS += escapesrc',
-                    '\tifneq (@platform_make_fragment_name@,mh-msys-msvc)\n\t\tSUBDIRS += escapesrc\n\tendif')
+            if self.settings.build_type == 'Release':
+                tools.replace_in_file(runConfigureICU_file, "-MD", "-%s" % self.settings.compiler.runtime)
+            if self.settings.build_type == 'Debug':
+                tools.replace_in_file(runConfigureICU_file, "-MDd", "-%s -FS" % self.settings.compiler.runtime)
+        #else:
+        #    # This allows building ICU with multiple gcc compilers (overrides fixed compiler name gcc, i.e. gcc-5)
+        #    runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
+        #    tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
+        #    tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)
 
-                env_build = AutoToolsBuildEnvironment(self)
-                with tools.environment_append(env_build.vars):
-                    self.run("{vcvars_command} && {bash} -c 'pacman -S make --noconfirm'".format(
-                        vcvars_command=vcvars_command, 
-                        bash=bash))
-                        
-                    self.run(("{vcvars_command} && {bash} -c ^'make --silent -j {cpu_count}").format(
-                        vcvars_command=vcvars_command, 
-                        bash=bash,
-                        cpu_count=tools.cpu_count()))
-                    
-                    self.run("{vcvars_command} && {bash} -c ^'make install'".format(
-                        vcvars_command=vcvars_command, 
-                        bash=bash))
+        self.cfg['icu_source_dir'] = os.path.join(self.build_folder, 'sources', 'source')
+        self.cfg['build_dir'] = os.path.join(self.build_folder, 'sources', 'build')
+        self.cfg['output_dir'] = os.path.join(self.build_folder, 'output')
 
+        self.cfg['silent'] = '--silent' if self.options.silent else 'VERBOSE=1'
+        self.cfg['enable_debug'] = '--enable-debug --disable-release' if self.settings.build_type == 'Debug' else ''
+        self.cfg['arch_bits'] = '64' if self.settings.arch == 'x86_64' else '32'
+        self.cfg['enable_static'] = '--enable-static --disable-shared' if not self.options.shared else '--enable-shared --disable-static'
+        self.cfg['data_packaging'] = '--with-data-packaging={0}'.format(self.options.data_packaging)
+
+        self.cfg['general_opts'] = '--disable-samples --disable-layout --disable-layoutex'
+        if not self.options.with_unit_tests:
+            self.cfg['general_opts'] += ' --disable-tests'
+
+        if self.settings.compiler == 'Visual Studio':
+            # this overrides pre-configured environments (such as Appveyor's)
+            if "VisualStudioVersion" in os.environ:
+                del os.environ["VisualStudioVersion"]
+            self.cfg['vccmd'] = tools.vcvars_command(self.settings)
+            self.build_cygwin_msvc()
         else:
-            env_build = AutoToolsBuildEnvironment(self)
-            with tools.environment_append(env_build.vars):
-                platform = ''
-                if self.settings.os == 'Linux':
-                    if self.settings.compiler == 'gcc':
-                        platform = 'Linux/gcc'
-                    else:
-                        platform = 'Linux'
-                elif self.settings.os == 'Macos':
-                    platform = 'MacOSX'
-                
-                with tools.chdir(build_path):
-                    self.run(("bash ../source/runConfigureICU {enable_debug} {platform} "
-                        "--with-library-bits={arch} --prefix={output_path} {enable_static} {data_packaging} "
-                        "--disable-layout --disable-layoutex").format(
-                            enable_debug=enable_debug, 
-                            platform=platform, 
-                            arch=arch, 
-                            output_path=output_path, 
-                            enable_static=enable_static, 
-                            data_packaging=data_packaging))
-                            
-                    self.run("make --silent -j {cpu_count} install".format(
-                        cpu_count=tools.cpu_count()))
+            self.build_autotools()
 
-                if self.settings.os == 'Macos':
-                    with tools.chdir('output/lib'):
-                        for dylib in glob.glob('*icu*.{0}.dylib'.format(self.version)):
-                            self.run('install_name_tool -id {0} {1}'.format(os.path.basename(dylib), dylib))
 
     def package(self):
+        self.copy("LICENSE", dst=".", src=os.path.join(self.source_folder, 'sources'))
+
+        bin_dir_src, include_dir_src, lib_dir_src, share_dir_src = (os.path.join('output', path) for path in
+                                                                    ('bin', 'include', 'lib', 'share'))
         if self.settings.os == 'Windows':
-            bin_dir, include_dir, lib_dir, share_dir = (os.path.join('output', path) for path in
-                                                        ('bin', 'include', 'lib', 'share'))
-            self.output.info('bin_dir = {0}'.format(bin_dir))
-            self.output.info('include_dir = {0}'.format(include_dir))
-            self.output.info('lib_dir = {0}'.format(lib_dir))
-            self.output.info('share_dir = {0}'.format(share_dir))
+            bin_dir_dst, lib_dir_dst = ('bin64', 'lib64') if self.settings.arch == 'x86_64' else ('bin', 'lib')
 
             # we copy everything for a full ICU package
-            self.copy("*", dst="bin", src=bin_dir, keep_path=True, symlinks=True)
-            self.copy("*", dst="include", src=include_dir, keep_path=True, symlinks=True)
-            self.copy("*", dst="lib", src=lib_dir, keep_path=True, symlinks=True)
-            self.copy("*", dst="share", src=share_dir, keep_path=True, symlinks=True)
+            self.copy("*", dst=bin_dir_dst, src=bin_dir_src, keep_path=True, symlinks=True)
+            self.copy(pattern='*.dll', dst=bin_dir_dst, src=lib_dir_src, keep_path=False)
+            self.copy("*", dst=lib_dir_dst, src=lib_dir_src, keep_path=True, symlinks=True)
 
+            # lets remove .dlls from the lib dir, they are in bin/ in upstream releases.
+            if os.path.exists(os.path.join(self.package_folder, lib_dir_dst)):
+                for item in os.listdir(os.path.join(self.package_folder, lib_dir_dst)):
+                    if item.endswith(".dll"):
+                        os.remove(os.path.join(self.package_folder, lib_dir_dst, item))
+
+            self.copy("*", dst="include", src=include_dir_src, keep_path=True, symlinks=True)
+            self.copy("*", dst="share", src=share_dir_src, keep_path=True, symlinks=True)
         else:
-            bin_dir, include_dir, lib_dir, share_dir = (os.path.join('output', path) for path in
-                                                        ('bin', 'include', 'lib', 'share'))
-            self.output.info('bin_dir = {0}'.format(bin_dir))
-            self.output.info('include_dir = {0}'.format(include_dir))
-            self.output.info('lib_dir = {0}'.format(lib_dir))
-            self.output.info('share_dir = {0}'.format(share_dir))
-
             # we copy everything for a full ICU package
-            self.copy("*", dst="bin", src=bin_dir, keep_path=True, symlinks=True)
-            self.copy("*", dst="include", src=include_dir, keep_path=True, symlinks=True)
-            self.copy("*", dst="lib", src=lib_dir, keep_path=True, symlinks=True)
-            self.copy("*", dst="share", src=share_dir, keep_path=True, symlinks=True)
+            self.copy("*", dst="bin", src=bin_dir_src, keep_path=True, symlinks=True)
+            self.copy("*", dst="include", src=include_dir_src, keep_path=True, symlinks=True)
+            self.copy("*", dst="lib", src=lib_dir_src, keep_path=True, symlinks=True)
+            self.copy("*", dst="share", src=share_dir_src, keep_path=True, symlinks=True)
+
+
+    def package_id(self):
+        # ICU unit testing shouldn't affect the package's ID
+        self.info.options.with_unit_tests = "any"
+
+        # Verbosity doesn't affect package's ID
+        self.info.options.silent = "any"
+
 
     def package_info(self):
+        bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' and self.settings.os == 'Windows' else ('bin' , 'lib')
+        self.cpp_info.libdirs = [ lib_dir ]
+
+        # if icudata is not last, it fails to build on some platforms (Windows)
+        # some linkers are not clever enough to be able to link
         self.cpp_info.libs = []
         vtag = self.version.split('.')[0]
         keep = False
-        for lib in tools.collect_libs(self):
+        for lib in tools.collect_libs(self, lib_dir):
             if not vtag in lib:
-                self.output.info("OUTPUT LIBRARY: " + lib)
-                if lib != 'icudata':
-                    self.cpp_info.libs.append(lib)
+                if lib.endswith('icudata') or lib.endswith('icudt'):
+                    keep = lib
                 else:
-                    keep = True
+                    self.cpp_info.libs.append(lib)
 
-        # if icudata is not last, it fails to build (is that true?)
         if keep:
-            self.cpp_info.libs.append('icudata')
+            self.cpp_info.libs.append(keep)
 
-        self.env_info.path.append(os.path.join(self.package_folder, "lib"))
-        
+        data_dir = os.path.join(self.package_folder, 'share', self.name, self.version)
+        data_file = "icudt{v}l.dat".format(v=vtag)
+        data_path = os.path.join(data_dir, data_file).replace('\\', '/')
+        self.env_info.ICU_DATA.append(data_path)
+
+        self.env_info.PATH.append(os.path.join(self.package_folder, bin_dir))
+
         if not self.options.shared:
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
-
             if self.settings.os == 'Linux':
                 self.cpp_info.libs.append('dl')
+                
+            if self.settings.os == 'Windows':
+                self.cpp_info.libs.append('advapi32')
+                
+        if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
+            self.cpp_info.cppflags = ["-std=c++11"]
 
-    def package_id(self):
-        self.info.options.with_msys = "any" 
+
+    def update_config_files(self):
+        # update the outdated config.guess and config.sub included in ICU
+        # ICU Ticket: http://bugs.icu-project.org/trac/ticket/13470
+        # slated for fix in v61.1
+        config_updates = ['config.guess', 'config.sub']
+        for cfg_update in config_updates:
+            dst_config = os.path.join('sources', cfg_update)
+            if os.path.isfile(dst_config):
+                os.remove(dst_config)
+            self.output.info('Updating %s' % dst_config)
+            tools.download('http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f={0};hb=HEAD'.format(cfg_update),
+                           dst_config)
+
+    def apply_patches(self,patchfiles):
+        for patch in patchfiles:
+            patchfile = os.path.join('patches',patch)
+            tools.patch(base_path=os.path.join('sources'), patch_file=patchfile, strip=1)
+
+
+    def build_config_cmd(self):
+        outdir = self.cfg['output_dir'].replace('\\', '/')
+
+        #outdir = tools.unix_path(self.cfg['output_dir'])
+
+        #if self.options.msvc_platform == 'cygwin':
+        #outdir = re.sub(r'([a-z]):(.*)',
+        #                '/cygdrive/\\1\\2',
+        #                self.cfg['output_dir'],
+        #                flags=re.IGNORECASE).replace('\\', '/')
+
+
+        config_cmd = "../source/runConfigureICU {enable_debug} " \
+                     "{platform} {host} {lib_arch_bits} {outdir} " \
+                     "{enable_static} {data_packaging} {general}" \
+                     "".format(enable_debug=self.cfg['enable_debug'],
+                               platform=self.cfg['platform'],
+                               host=self.cfg['host'],
+                               lib_arch_bits='--with-library-bits=%s' % self.cfg['arch_bits'],
+                               outdir='--prefix=%s' % outdir,
+                               enable_static=self.cfg['enable_static'],
+                               data_packaging=self.cfg['data_packaging'],
+                               general=self.cfg['general_opts'])
+
+        return config_cmd
+
+
+    def build_cygwin_msvc(self):
+        self.cfg['platform'] = 'Cygwin/MSVC'
+
+        if 'CYGWIN_ROOT' not in os.environ:
+            raise Exception("CYGWIN_ROOT environment variable must be set.")
+        else:
+            self.output.info("Using Cygwin from: " + os.environ["CYGWIN_ROOT"])
+
+        os.environ['PATH'] = os.path.join(os.environ['CYGWIN_ROOT'], 'bin') + os.pathsep + \
+                             os.path.join(os.environ['CYGWIN_ROOT'], 'usr', 'bin') + os.pathsep + \
+                             os.environ['PATH']
+
+        os.mkdir(self.cfg['build_dir'])
+
+        self.output.info("Starting configuration.")
+
+        config_cmd = self.build_config_cmd()
+        self.run("{vccmd} && cd {builddir} && bash -c '{config_cmd}'".format(vccmd=self.cfg['vccmd'],
+                                                                             builddir=self.cfg['build_dir'],
+                                                                             config_cmd=config_cmd))
+
+        self.output.info("Starting built.")
+
+        self.run("{vccmd} && cd {builddir} && make {silent} -j {cpus_var}".format(vccmd=self.cfg['vccmd'],
+                                                                                  builddir=self.cfg['build_dir'],
+                                                                                  silent=self.cfg['silent'],
+                                                                                  cpus_var=tools.cpu_count()))
+        if self.options.with_unit_tests:
+            self.run("{vccmd} && cd {builddir} && make {silent} check".format(vccmd=self.cfg['vccmd'],
+                                                                              builddir=self.cfg['build_dir'],
+                                                                              silent=self.cfg['silent']))
+
+        self.run("{vccmd} && cd {builddir} && make {silent} install".format(vccmd=self.cfg['vccmd'],
+                                                                            builddir=self.cfg['build_dir'],
+                                                                            silent=self.cfg['silent']))
+            
+
+    def build_autotools(self):
+        env_build = AutoToolsBuildEnvironment(self)
+        if not self.options.shared:
+            env_build.defines.append("U_STATIC_IMPLEMENTATION")
+
+        with tools.environment_append(env_build.vars):
+            if self.settings.os == 'Linux':
+                self.cfg['platform'] = 'Linux/gcc' if str(self.settings.compiler).startswith('gcc') else 'Linux'
+            elif self.settings.os == 'Macos':
+                self.cfg['platform'] = 'MacOSX'
+            if self.settings.os == 'Windows':
+                self.cfg['platform'] = 'MinGW'
+
+                if self.settings.arch == 'x86':
+                    MINGW_CHOST = 'i686-w64-mingw32'
+                else:
+                    MINGW_CHOST = 'x86_64-w64-mingw32'
+
+                self.cfg['host'] = '--build={MINGW_CHOST} ' \
+                                   '--host={MINGW_CHOST} '.format(MINGW_CHOST=MINGW_CHOST)
+
+            os.mkdir(self.cfg['build_dir'])
+
+            config_cmd = self.build_config_cmd()
+
+            # with tools.environment_append(env_build.vars):
+            self.run("cd {builddir} && bash -c '{config_cmd}'".format(builddir=self.cfg['build_dir'],
+                                                                 config_cmd=config_cmd))
+
+            os.system("cd {builddir} && make {silent} -j {cpus_var}".format(builddir=self.cfg['build_dir'],
+                                                                            cpus_var=tools.cpu_count(),
+                                                                            silent=self.cfg['silent']))
+
+            if self.options.with_unit_tests:
+                os.system("cd {builddir} && make {silent} check".format(builddir=self.cfg['build_dir'],
+                                                                       silent=self.cfg['silent']))
+
+            os.system("cd {builddir} && make {silent} install".format(builddir=self.cfg['build_dir'],
+                                                                     silent=self.cfg['silent']))
+
+            if self.settings.os == 'Macos':
+                with tools.chdir('output/lib'):
+                    for dylib in glob.glob('*icu*.{0}.dylib'.format(self.version)):
+                        self.run('install_name_tool -id {0} {1}'.format(
+                            os.path.basename(dylib), dylib))

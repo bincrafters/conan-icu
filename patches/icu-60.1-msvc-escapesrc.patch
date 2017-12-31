@@ -1,0 +1,31 @@
+diff -Naur icu4c/source/tools/escapesrc/escapesrc.cpp icu4c-new/source/tools/escapesrc/escapesrc.cpp
+--- icu4c/source/tools/escapesrc/escapesrc.cpp	2017-04-26 23:55:10.715360000 +0300
++++ icu4c-new/source/tools/escapesrc/escapesrc.cpp	2017-11-08 14:26:06.424180603 +0200
+@@ -4,7 +4,11 @@
+ #include <stdio.h>
+ #include <string>
+ #include <stdlib.h>
++#if defined(_MSC_VER)
++#include <io.h>
++#else
+ #include <unistd.h>
++#endif
+ #include <errno.h>
+ #include <string.h>
+ #include <iostream>
+diff -Naur icu4c/source/tools/Makefile.in icu4c-new/source/tools/Makefile.in
+--- icu4c/source/tools/Makefile.in	2017-04-13 09:30:22.047664000 +0300
++++ icu4c-new/source/tools/Makefile.in	2017-11-08 10:54:38.079202378 +0200
+@@ -17,11 +17,7 @@
+ 
+ SUBDIRS = toolutil ctestfw makeconv genrb genbrk \
+ gencnval gensprep icuinfo genccode gencmn icupkg pkgdata \
+-gentest gennorm2 gencfu gendict
+-
+-ifneq (@platform_make_fragment_name@,mh-cygwin-msvc)
+-SUBDIRS += escapesrc
+-endif
++gentest gennorm2 gencfu gendict escapesrc
+ 
+ ## List of phony targets
+ .PHONY : all all-local all-recursive install install-local	\
