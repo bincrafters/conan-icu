@@ -162,7 +162,7 @@ class IcuConan(ConanFile):
         keep = False
         for lib in tools.collect_libs(self, lib_dir):
             if not vtag in lib:
-                if lib.endswith('icudata') or lib.endswith('icudt'):
+                if 'icudata' in lib or 'icudt' in lib:
                     keep = lib
                 else:
                     self.cpp_info.libs.append(lib)
