@@ -4,11 +4,12 @@ linux: &linux
    language: python
    python: "3.6"
    services:
-     - docker
+      - docker
 osx: &osx
    os: osx
    language: generic
 matrix:
+   fast_finish: true
    include:
       - <<: *linux
         env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49 CONAN_ARCHS=x86
@@ -48,7 +49,6 @@ matrix:
       - <<: *osx
         osx_image: xcode9
         env: CONAN_APPLE_CLANG_VERSIONS=9.0 CONAN_ARCHS=x86_64
-   fast_finish: true
 
 install:
    - chmod +x .travis/install.sh
