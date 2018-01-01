@@ -56,7 +56,7 @@ class IcuConan(ConanFile):
                 self.build_requires("mingw_installer/1.0@conan/stable")
 
     def configure(self):
-        if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
+        if self.settings.compiler in [ "gcc", "clang", "apple-clang" ]:
             self.settings.compiler.libcxx = 'libstdc++11'
 
     def source(self):
@@ -185,7 +185,7 @@ class IcuConan(ConanFile):
             if self.settings.os == 'Windows':
                 self.cpp_info.libs.append('advapi32')
                 
-        if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
+        if self.settings.compiler in [ "gcc", "clang", "apple-clang" ]:
             self.cpp_info.cppflags = ["-std=c++11"]
 
 
