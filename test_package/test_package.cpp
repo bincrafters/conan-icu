@@ -43,6 +43,8 @@
 // default converter for the platform encoding
 static UConverter *cnv=NULL;
 
+using namespace icu;
+
 static void
 printUString(const char *announce, const UChar *s, int32_t length) {
     static char out[200];

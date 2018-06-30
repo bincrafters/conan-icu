@@ -4,10 +4,13 @@
 #
 # Changelog
 #
-# v60.2
+# v62.1
 #
-# - Incomplete data of ICU fixed upstream
-#   Ticket http://bugs.icu-project.org/trac/ticket/13139
+# - Fix compile error in escapesrc.cpp when using MSYS with MSVC
+#   Ticket https://ssl.icu-project.org/trac/ticket/13469
+#
+# - Improve detection of MSYS/MSVC through config.gess and config.sub
+#   Ticket https://ssl.icu-project.org/trac/ticket/13470
 #
 #
 
@@ -17,7 +20,7 @@ import glob
 
 class IcuConan(ConanFile):
     name = "icu"
-    version = "60.2"
+    version = "62.1"
     homepage = "http://site.icu-project.org"
     license = "http://www.unicode.org/copyright.html#License"
     description = "ICU is a mature, widely used set of C/C++ and Java libraries " \
@@ -25,8 +28,6 @@ class IcuConan(ConanFile):
     url = "https://github.com/bincrafters/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
     source_url = "https://github.com/unicode-org/icu/archive/release-{0}.tar.gz".format(version.replace('.', '-'))
-
-    exports_sources = [ "patches/*.patch" ]
 
     options = {"shared": [True, False],
                "data_packaging": [ "files", "archive", "library", "static" ],
@@ -64,18 +65,6 @@ class IcuConan(ConanFile):
         os.rename("{0}-release-{1}".format(self.name, self.version.replace('.', '-')), 'sources')
 
     def build(self):
-        self.update_config_files()
-
-        patchfiles =  [
-                        # see ICU Ticket: http://bugs.icu-project.org/trac/ticket/13469
-                        # slated for inclusion in v61m1
-                        'icu-60.1-msvc-escapesrc.patch',
-                        '0014-mingwize-pkgdata.mingw.patch',
-                        '0020-workaround-missing-locale.patch' ]
-
-        if self.settings.compiler != 'Visual Studio' and self.settings.os == 'Windows':
-            self.apply_patches(patchfiles)
-
         if self.settings.compiler == 'Visual Studio':
             runConfigureICU_file = os.path.join('sources', 'icu4c', 'source', 'runConfigureICU')
 
@@ -186,25 +175,6 @@ class IcuConan(ConanFile):
                 
         if self.settings.compiler in [ "gcc", "clang" ]:
             self.cpp_info.cppflags = ["-std=c++11"]
-
-
-    def update_config_files(self):
-        # update the outdated config.guess and config.sub included in ICU
-        # ICU Ticket: http://bugs.icu-project.org/trac/ticket/13470
-        # slated for fix in v61.1
-        config_updates = ['config.guess', 'config.sub']
-        for cfg_update in config_updates:
-            dst_config = os.path.join('sources', 'icu4c', cfg_update)
-            if os.path.isfile(dst_config):
-                os.remove(dst_config)
-            self.output.info('Updating %s' % dst_config)
-            tools.download('http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f={0};hb=HEAD'.format(cfg_update),
-                           dst_config)
-
-    def apply_patches(self,patchfiles):
-        for patch in patchfiles:
-            patchfile = os.path.join('patches',patch)
-            tools.patch(base_path=os.path.join('sources', 'icu4c'), patch_file=patchfile, strip=1)
 
 
     def build_config_cmd(self):
