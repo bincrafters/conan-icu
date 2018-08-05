@@ -22,10 +22,9 @@ class IcuConan(ConanFile):
     license = "http://www.unicode.org/copyright.html#License"
     description = "ICU is a mature, widely used set of C/C++ and Java libraries " \
                   "providing Unicode and Globalization support for software applications."
-    url = "https://github.com/sigmoidal/conan-icu"
+    url = "https://github.com/bincrafters/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
-    source_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src".format(version,version.replace('.', '_'))
-    data_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-data".format(version,version.replace('.', '_'))
+    source_url = "https://github.com/unicode-org/icu/archive/release-{0}.tar.gz".format(version.replace('.', '-'))
 
     exports_sources = [ "patches/*.patch" ]
 
@@ -60,9 +59,9 @@ class IcuConan(ConanFile):
             self.settings.compiler.libcxx = 'libstdc++11'
 
     def source(self):
-        self.output.info("Fetching sources: {0}.tgz".format(self.source_url))
-        tools.get("{0}.tgz".format(self.source_url))
-        os.rename(self.name, 'sources')
+        self.output.info("Fetching sources: {0}".format(self.source_url))
+        tools.get("{0}".format(self.source_url))
+        os.rename("{0}-release-{1}".format(self.name, self.version.replace('.', '-')), 'sources')
 
     def build(self):
         self.update_config_files()
@@ -78,7 +77,7 @@ class IcuConan(ConanFile):
             self.apply_patches(patchfiles)
 
         if self.settings.compiler == 'Visual Studio':
-            runConfigureICU_file = os.path.join('sources', 'source','runConfigureICU')
+            runConfigureICU_file = os.path.join('sources', 'icu4c', 'source', 'runConfigureICU')
 
             if self.settings.build_type == 'Release':
                 tools.replace_in_file(runConfigureICU_file, "-MD", "-%s" % self.settings.compiler.runtime)
@@ -86,12 +85,12 @@ class IcuConan(ConanFile):
                 tools.replace_in_file(runConfigureICU_file, "-MDd", "-%s -FS" % self.settings.compiler.runtime)
         #else:
         #    # This allows building ICU with multiple gcc compilers (overrides fixed compiler name gcc, i.e. gcc-5)
-        #    runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
+        #    runConfigureICU_file = os.path.join(self.name, 'icu4c', 'source', 'runConfigureICU')
         #    tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
         #    tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)
 
-        self.cfg['icu_source_dir'] = os.path.join(self.build_folder, 'sources', 'source')
-        self.cfg['build_dir'] = os.path.join(self.build_folder, 'sources', 'build')
+        self.cfg['icu_source_dir'] = os.path.join(self.build_folder, 'sources', 'icu4c', 'source')
+        self.cfg['build_dir'] = os.path.join(self.build_folder, 'sources', 'icu4c', 'build')
         self.cfg['output_dir'] = os.path.join(self.build_folder, 'output')
 
         self.cfg['silent'] = '--silent' if self.options.silent else 'VERBOSE=1'
@@ -115,7 +114,7 @@ class IcuConan(ConanFile):
 
 
     def package(self):
-        self.copy("LICENSE", dst=".", src=os.path.join(self.source_folder, 'sources'))
+        self.copy("LICENSE", dst=".", src=os.path.join(self.source_folder, 'sources', 'icu4c'))
 
         bin_dir_src, include_dir_src, lib_dir_src, share_dir_src = (os.path.join('output', path) for path in
                                                                     ('bin', 'include', 'lib', 'share'))
@@ -195,7 +194,7 @@ class IcuConan(ConanFile):
         # slated for fix in v61.1
         config_updates = ['config.guess', 'config.sub']
         for cfg_update in config_updates:
-            dst_config = os.path.join('sources', cfg_update)
+            dst_config = os.path.join('sources', 'icu4c', cfg_update)
             if os.path.isfile(dst_config):
                 os.remove(dst_config)
             self.output.info('Updating %s' % dst_config)
@@ -205,7 +204,7 @@ class IcuConan(ConanFile):
     def apply_patches(self,patchfiles):
         for patch in patchfiles:
             patchfile = os.path.join('patches',patch)
-            tools.patch(base_path=os.path.join('sources'), patch_file=patchfile, strip=1)
+            tools.patch(base_path=os.path.join('sources', 'icu4c'), patch_file=patchfile, strip=1)
 
 
     def build_config_cmd(self):
