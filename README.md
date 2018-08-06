@@ -1,6 +1,6 @@
 [![Download](https://api.bintray.com/packages/bincrafters/public-conan/icu%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/icu%3Abincrafters/_latestVersion)
-[![Build Status](https://travis-ci.org/bincrafters/conan-icu.svg?branch=stable%2F60.2)](https://travis-ci.org/bincrafters/conan-icu)
-[![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-icu?branch=stable%2F60.2&svg=true)](https://ci.appveyor.com/project/bincrafters/conan-icu)
+[![Build Status](https://travis-ci.org/bincrafters/conan-icu.svg?branch=stable%2F62.1)](https://travis-ci.org/bincrafters/conan-icu)
+[![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-icu?branch=stable%2F62.1&svg=true)](https://ci.appveyor.com/project/bincrafters/conan-icu)
 
 [Conan.io](https://conan.io) package recipe for [*icu*](http://site.icu-project.org).
 
@@ -12,14 +12,14 @@ The packages generated with this **conanfile** can be found on [Bintray](https:/
 
 ### Basic setup
 
-    $ conan install icu/60.2@bincrafters/stable
+    $ conan install icu/62.1@bincrafters/stable
 
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    icu/60.2@bincrafters/stable
+    icu/62.1@bincrafters/stable
 
 
 Complete the installation of requirements for your project running:
@@ -53,7 +53,7 @@ The following command both runs all the steps of the conan file, and publishes t
 
 ## Upload
 
-    $ conan upload icu/60.2@bincrafters/stable --all -r bincrafters
+    $ conan upload icu/62.1@bincrafters/stable --all -r bincrafters
 
 
 ## Conan Recipe License
@@ -61,7 +61,7 @@ The following command both runs all the steps of the conan file, and publishes t
 NOTE: The conan recipe license applies only to the files of this recipe, which can be used to build and package icu.
 It does *not* in any way apply or is related to the actual software being packaged.
 
-[MIT](https://github.com/bincrafters/conan-icu.git/blob/stable/60.2/LICENSE.md)
+[MIT](https://github.com/bincrafters/conan-icu.git/blob/stable/62.1/LICENSE.md)
 
 ## Patches
 
