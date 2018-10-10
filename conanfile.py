@@ -55,10 +55,6 @@ class IcuConan(ConanFile):
             if self.settings.compiler != "Visual Studio":
                 self.build_requires("mingw_installer/1.0@conan/stable")
 
-    def configure(self):
-        if self.settings.compiler in [ "gcc", "clang" ]:
-            self.settings.compiler.libcxx = 'libstdc++11'
-
     def source(self):
         self.output.info("Fetching sources: {0}".format(self.source_url))
         tools.get("{0}".format(self.source_url))
