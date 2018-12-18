@@ -34,7 +34,7 @@ class IcuConan(ConanFile):
                "with_unit_tests": [True, False],
                "silent": [True, False]}
 
-    default_options = "shared=True", \
+    default_options = "shared=False", \
                       "data_packaging=archive", \
                       "with_unit_tests=False", \
                       "silent=True"
@@ -147,16 +147,21 @@ class IcuConan(ConanFile):
         # some linkers are not clever enough to be able to link
         self.cpp_info.libs = []
         vtag = self.version.split('.')[0]
-        keep = False
+        keep1 = False
+        keep2 = False
         for lib in tools.collect_libs(self, lib_dir):
             if not vtag in lib:
                 if 'icudata' in lib or 'icudt' in lib:
-                    keep = lib
+                    keep1 = lib
+                elif 'icuuc' in lib:
+                    keep2 = lib
                 else:
                     self.cpp_info.libs.append(lib)
 
-        if keep:
-            self.cpp_info.libs.append(keep)
+        if keep2:
+            self.cpp_info.libs.append(keep2)
+        if keep1:
+            self.cpp_info.libs.append(keep1)
 
         data_dir = os.path.join(self.package_folder, 'share', self.name, self.version)
         data_file = "icudt{v}l.dat".format(v=vtag)
