@@ -18,6 +18,7 @@ from conans import ConanFile, tools, AutoToolsBuildEnvironment
 import os
 import glob
 
+
 class IcuConan(ConanFile):
     name = "icu"
     version = "62.1"
@@ -30,7 +31,7 @@ class IcuConan(ConanFile):
     source_url = "https://github.com/unicode-org/icu/archive/release-{0}.tar.gz".format(version.replace('.', '-'))
 
     options = {"shared": [True, False],
-               "data_packaging": [ "files", "archive", "library", "static" ],
+               "data_packaging": ["files", "archive", "library", "static"],
                "with_unit_tests": [True, False],
                "silent": [True, False]}
 
@@ -40,14 +41,14 @@ class IcuConan(ConanFile):
                       "silent=True"
     
     # Dictionary storing strings useful for setting up the configuration and make command lines
-    cfg = { 'enable_debug': '', 
-            'platform': '', 
-            'host': '', 
-            'arch_bits': '',
-            'output_dir': '', 
-            'enable_static': '', 
-            'data_packaging': '', 
-            'general_opts': '' }
+    cfg = {'enable_debug': '',
+           'platform': '',
+           'host': '',
+           'arch_bits': '',
+           'output_dir': '',
+           'enable_static': '',
+           'data_packaging': '',
+           'general_opts': ''}
 
     def build_requirements(self):
         if self.settings.os == "Windows":
@@ -56,7 +57,7 @@ class IcuConan(ConanFile):
                 self.build_requires("mingw_installer/1.0@conan/stable")
 
     def configure(self):
-        if self.settings.compiler in [ "gcc", "clang" ]:
+        if self.settings.compiler in ["gcc", "clang"]:
             self.settings.compiler.libcxx = 'libstdc++11'
 
     def source(self):
@@ -97,10 +98,9 @@ class IcuConan(ConanFile):
             if "VisualStudioVersion" in os.environ:
                 del os.environ["VisualStudioVersion"]
             self.cfg['vccmd'] = tools.vcvars_command(self.settings)
-            self.build_cygwin_msvc()
+            self._build_cygwin_msvc()
         else:
-            self.build_autotools()
-
+            self._build_autotools()
 
     def package(self):
         self.copy("LICENSE", dst=".", src=os.path.join(self.source_folder, 'sources', 'icu4c'))
@@ -130,7 +130,6 @@ class IcuConan(ConanFile):
             self.copy("*", dst="lib", src=lib_dir_src, keep_path=True, symlinks=True)
             self.copy("*", dst="share", src=share_dir_src, keep_path=True, symlinks=True)
 
-
     def package_id(self):
         # ICU unit testing shouldn't affect the package's ID
         self.info.options.with_unit_tests = "any"
@@ -138,10 +137,9 @@ class IcuConan(ConanFile):
         # Verbosity doesn't affect package's ID
         self.info.options.silent = "any"
 
-
     def package_info(self):
-        bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' and self.settings.os == 'Windows' else ('bin' , 'lib')
-        self.cpp_info.libdirs = [ lib_dir ]
+        bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' and self.settings.os == 'Windows' else ('bin', 'lib')
+        self.cpp_info.libdirs = [lib_dir]
 
         # if icudata is not last, it fails to build on some platforms (Windows)
         # some linkers are not clever enough to be able to link
@@ -178,9 +176,8 @@ class IcuConan(ConanFile):
             if self.settings.os == 'Windows':
                 self.cpp_info.libs.append('advapi32')
                 
-        if self.settings.compiler in [ "gcc", "clang" ]:
+        if self.settings.compiler in ["gcc", "clang"]:
             self.cpp_info.cppflags = ["-std=c++11"]
-
 
     def build_config_cmd(self):
         outdir = self.cfg['output_dir'].replace('\\', '/')
@@ -192,7 +189,6 @@ class IcuConan(ConanFile):
         #                '/cygdrive/\\1\\2',
         #                self.cfg['output_dir'],
         #                flags=re.IGNORECASE).replace('\\', '/')
-
 
         config_cmd = "../source/runConfigureICU {enable_debug} " \
                      "{platform} {host} {lib_arch_bits} {outdir} " \
@@ -208,8 +204,7 @@ class IcuConan(ConanFile):
 
         return config_cmd
 
-
-    def build_cygwin_msvc(self):
+    def _build_cygwin_msvc(self):
         self.cfg['platform'] = 'Cygwin/MSVC'
 
         if 'CYGWIN_ROOT' not in os.environ:
@@ -244,9 +239,8 @@ class IcuConan(ConanFile):
         self.run("{vccmd} && cd {builddir} && make {silent} install".format(vccmd=self.cfg['vccmd'],
                                                                             builddir=self.cfg['build_dir'],
                                                                             silent=self.cfg['silent']))
-            
 
-    def build_autotools(self):
+    def _build_autotools(self):
         env_build = AutoToolsBuildEnvironment(self)
         if not self.options.shared:
             env_build.defines.append("U_STATIC_IMPLEMENTATION")
@@ -273,7 +267,7 @@ class IcuConan(ConanFile):
 
             # with tools.environment_append(env_build.vars):
             self.run("cd {builddir} && bash -c '{config_cmd}'".format(builddir=self.cfg['build_dir'],
-                                                                 config_cmd=config_cmd))
+                                                                      config_cmd=config_cmd))
 
             os.system("cd {builddir} && make {silent} -j {cpus_var}".format(builddir=self.cfg['build_dir'],
                                                                             cpus_var=tools.cpu_count(),
@@ -281,10 +275,10 @@ class IcuConan(ConanFile):
 
             if self.options.with_unit_tests:
                 os.system("cd {builddir} && make {silent} check".format(builddir=self.cfg['build_dir'],
-                                                                       silent=self.cfg['silent']))
+                                                                        silent=self.cfg['silent']))
 
             os.system("cd {builddir} && make {silent} install".format(builddir=self.cfg['build_dir'],
-                                                                     silent=self.cfg['silent']))
+                                                                      silent=self.cfg['silent']))
 
             if self.settings.os == 'Macos':
                 with tools.chdir('output/lib'):
