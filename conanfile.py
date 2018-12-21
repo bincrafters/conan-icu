@@ -244,6 +244,9 @@ class IcuConan(ConanFile):
         env_build = AutoToolsBuildEnvironment(self)
         if not self.options.shared:
             env_build.defines.append("U_STATIC_IMPLEMENTATION")
+        if tools.is_apple_os(self.settings.os) and self.settings.get_safe("os.version"):
+            env_build.flags.append(tools.apple_deployment_target_flag(self.settings.os,
+                                                                      self.settings.os.version))
 
         with tools.environment_append(env_build.vars):
             if self.settings.os == 'Linux':
