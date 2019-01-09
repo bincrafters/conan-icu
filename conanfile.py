@@ -21,7 +21,7 @@ import glob
 
 class IcuConan(ConanFile):
     name = "icu"
-    version = "62.1"
+    version = "63.1"
     homepage = "http://site.icu-project.org"
     license = "http://www.unicode.org/copyright.html#License"
     description = "ICU is a mature, widely used set of C/C++ and Java libraries " \
