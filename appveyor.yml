@@ -22,8 +22,14 @@ environment:
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           CONAN_VISUAL_VERSIONS: 15
           CONAN_ARCHS: x86_64
-        - MINGW_CONFIGURATIONS: "6.3@x86_64@seh@posix"
-        - MINGW_CONFIGURATIONS: "7.1@x86_64@seh@posix"
+        - MINGW_CONFIGURATIONS: '4.9@x86@dwarf2@posix'
+        - MINGW_CONFIGURATIONS: '4.9@x86_64@seh@posix'
+        - MINGW_CONFIGURATIONS: '6@x86@dwarf2@posix'
+        - MINGW_CONFIGURATIONS: '6@x86_64@seh@posix'
+        - MINGW_CONFIGURATIONS: '7@x86@dwarf2@posix'
+        - MINGW_CONFIGURATIONS: '7@x86_64@seh@posix'
+        - MINGW_CONFIGURATIONS: '8@x86@dwarf2@posix'
+        - MINGW_CONFIGURATIONS: '8@x86_64@seh@posix'
 
 matrix:
   fast_finish: true
