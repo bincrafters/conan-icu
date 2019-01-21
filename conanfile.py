@@ -4,7 +4,7 @@
 #
 # Changelog
 #
-# v62.1
+# v63.1
 #
 # - Fix compile error in escapesrc.cpp when using MSYS with MSVC
 #   Ticket https://ssl.icu-project.org/trac/ticket/13469
@@ -14,9 +14,9 @@
 #
 #
 
-from conans import ConanFile, tools, AutoToolsBuildEnvironment
 import os
 import glob
+from conans import ConanFile, tools, AutoToolsBuildEnvironment
 
 
 class IcuConan(ConanFile):
@@ -31,15 +31,17 @@ class IcuConan(ConanFile):
     source_url = "https://github.com/unicode-org/icu/archive/release-{0}.tar.gz".format(version.replace('.', '-'))
 
     options = {"shared": [True, False],
+               "fPIC": [True, False],
                "data_packaging": ["files", "archive", "library", "static"],
                "with_unit_tests": [True, False],
                "silent": [True, False]}
 
     default_options = "shared=False", \
+                      "fPIC=True", \
                       "data_packaging=archive", \
                       "with_unit_tests=False", \
                       "silent=True"
-    
+
     # Dictionary storing strings useful for setting up the configuration and make command lines
     cfg = {'enable_debug': '',
            'platform': '',
@@ -56,6 +58,10 @@ class IcuConan(ConanFile):
             if self.settings.compiler != "Visual Studio":
                 self.build_requires("mingw_installer/1.0@conan/stable")
 
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
+
     def configure(self):
         if self.settings.compiler in ["gcc", "clang"]:
             self.settings.compiler.libcxx = 'libstdc++11'
@@ -67,17 +73,17 @@ class IcuConan(ConanFile):
 
     def build(self):
         if self.settings.compiler == 'Visual Studio':
-            runConfigureICU_file = os.path.join('sources', 'icu4c', 'source', 'runConfigureICU')
+            run_configure_icu_file = os.path.join('sources', 'icu4c', 'source', 'runConfigureICU')
 
             if self.settings.build_type == 'Release':
-                tools.replace_in_file(runConfigureICU_file, "-MD", "-%s" % self.settings.compiler.runtime)
+                tools.replace_in_file(run_configure_icu_file, "-MD", "-%s" % self.settings.compiler.runtime)
             if self.settings.build_type == 'Debug':
-                tools.replace_in_file(runConfigureICU_file, "-MDd", "-%s -FS" % self.settings.compiler.runtime)
+                tools.replace_in_file(run_configure_icu_file, "-MDd", "-%s -FS" % self.settings.compiler.runtime)
         #else:
         #    # This allows building ICU with multiple gcc compilers (overrides fixed compiler name gcc, i.e. gcc-5)
-        #    runConfigureICU_file = os.path.join(self.name, 'icu4c', 'source', 'runConfigureICU')
-        #    tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
-        #    tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)
+        #    run_configure_icu_file = os.path.join(self.name, 'icu4c', 'source', 'runConfigureICU')
+        #    tools.replace_in_file(run_configure_icu_file, '        CC=gcc; export CC\n', '', strict=True)
+        #    tools.replace_in_file(run_configure_icu_file, '        CXX=g++; export CXX\n', '', strict=True)
 
         self.cfg['icu_source_dir'] = os.path.join(self.build_folder, 'sources', 'icu4c', 'source')
         self.cfg['build_dir'] = os.path.join(self.build_folder, 'sources', 'icu4c', 'build')
@@ -148,7 +154,7 @@ class IcuConan(ConanFile):
         keep1 = False
         keep2 = False
         for lib in tools.collect_libs(self, lib_dir):
-            if not vtag in lib:
+            if vtag not in lib:
                 if 'icudata' in lib or 'icudt' in lib:
                     keep1 = lib
                 elif 'icuuc' in lib:
@@ -172,20 +178,20 @@ class IcuConan(ConanFile):
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
             if self.settings.os == 'Linux':
                 self.cpp_info.libs.append('dl')
-                
+
             if self.settings.os == 'Windows':
                 self.cpp_info.libs.append('advapi32')
-                
+
         if self.settings.compiler in ["gcc", "clang"]:
             self.cpp_info.cppflags = ["-std=c++11"]
 
     def build_config_cmd(self):
         outdir = self.cfg['output_dir'].replace('\\', '/')
 
-        #outdir = tools.unix_path(self.cfg['output_dir'])
+        # outdir = tools.unix_path(self.cfg['output_dir'])
 
-        #if self.options.msvc_platform == 'cygwin':
-        #outdir = re.sub(r'([a-z]):(.*)',
+        # if self.options.msvc_platform == 'cygwin':
+        # outdir = re.sub(r'([a-z]):(.*)',
         #                '/cygdrive/\\1\\2',
         #                self.cfg['output_dir'],
         #                flags=re.IGNORECASE).replace('\\', '/')
@@ -213,8 +219,8 @@ class IcuConan(ConanFile):
             self.output.info("Using Cygwin from: " + os.environ["CYGWIN_ROOT"])
 
         os.environ['PATH'] = os.path.join(os.environ['CYGWIN_ROOT'], 'bin') + os.pathsep + \
-                             os.path.join(os.environ['CYGWIN_ROOT'], 'usr', 'bin') + os.pathsep + \
-                             os.environ['PATH']
+            os.path.join(os.environ['CYGWIN_ROOT'], 'usr', 'bin') + os.pathsep + \
+            os.environ['PATH']
 
         os.mkdir(self.cfg['build_dir'])
 
