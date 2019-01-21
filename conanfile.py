@@ -4,7 +4,7 @@
 #
 # Changelog
 #
-# v62.1
+# v63.1
 #
 # - Fix compile error in escapesrc.cpp when using MSYS with MSVC
 #   Ticket https://ssl.icu-project.org/trac/ticket/13469

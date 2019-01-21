@@ -12,14 +12,14 @@ The packages generated with this **conanfile** can be found on [Bintray](https:/
 
 ### Basic setup
 
-    $ conan install icu/62.1@bincrafters/stable
+    $ conan install icu/63.1@bincrafters/stable
 
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
 
     [requires]
-    icu/62.1@bincrafters/stable
+    icu/63.1@bincrafters/stable
 
 
 Complete the installation of requirements for your project running:
@@ -54,7 +54,7 @@ The following command both runs all the steps of the conan file, and publishes t
 
 ## Upload
 
-    $ conan upload icu/62.1@bincrafters/stable --all -r bincrafters
+    $ conan upload icu/63.1@bincrafters/stable --all -r bincrafters
 
 
 ## Conan Recipe License
