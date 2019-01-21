@@ -11,9 +11,10 @@
 #
 #
 
-from conans import ConanFile, tools, AutoToolsBuildEnvironment
 import os
 import glob
+from conans import ConanFile, tools, AutoToolsBuildEnvironment
+
 
 class IcuConan(ConanFile):
     name = "icu"
@@ -24,13 +25,13 @@ class IcuConan(ConanFile):
                   "providing Unicode and Globalization support for software applications."
     url = "https://github.com/sigmoidal/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
-    source_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src".format(version,version.replace('.', '_'))
-    data_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-data".format(version,version.replace('.', '_'))
+    source_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-src".format(version, version.replace('.', '_'))
+    data_url = "http://download.icu-project.org/files/icu4c/{0}/icu4c-{1}-data".format(version, version.replace('.', '_'))
 
-    exports_sources = [ "patches/*.patch" ]
+    exports_sources = ["patches/*.patch"]
 
     options = {"shared": [True, False],
-               "data_packaging": [ "files", "archive", "library", "static" ],
+               "data_packaging": ["files", "archive", "library", "static"],
                "with_unit_tests": [True, False],
                "silent": [True, False]}
 
@@ -38,16 +39,16 @@ class IcuConan(ConanFile):
                       "data_packaging=archive", \
                       "with_unit_tests=False", \
                       "silent=True"
-    
+
     # Dictionary storing strings useful for setting up the configuration and make command lines
-    cfg = { 'enable_debug': '', 
-            'platform': '', 
-            'host': '', 
-            'arch_bits': '',
-            'output_dir': '', 
-            'enable_static': '', 
-            'data_packaging': '', 
-            'general_opts': '' }
+    cfg = {'enable_debug': '',
+           'platform': '',
+           'host': '',
+           'arch_bits': '',
+           'output_dir': '',
+           'enable_static': '',
+           'data_packaging': '',
+           'general_opts': ''}
 
     def build_requirements(self):
         if self.settings.os == "Windows":
@@ -56,7 +57,7 @@ class IcuConan(ConanFile):
                 self.build_requires("mingw_installer/1.0@conan/stable")
 
     def configure(self):
-        if self.settings.compiler in [ "gcc", "clang" ]:
+        if self.settings.compiler in ["gcc", "clang"]:
             self.settings.compiler.libcxx = 'libstdc++11'
 
     def source(self):
@@ -67,28 +68,28 @@ class IcuConan(ConanFile):
     def build(self):
         self.update_config_files()
 
-        patchfiles =  [
-                        # see ICU Ticket: http://bugs.icu-project.org/trac/ticket/13469
-                        # slated for inclusion in v61m1
-                        'icu-60.1-msvc-escapesrc.patch',
-                        '0014-mingwize-pkgdata.mingw.patch',
-                        '0020-workaround-missing-locale.patch' ]
+        patchfiles = [
+            # see ICU Ticket: http://bugs.icu-project.org/trac/ticket/13469
+            # slated for inclusion in v61m1
+            'icu-60.1-msvc-escapesrc.patch',
+            '0014-mingwize-pkgdata.mingw.patch',
+            '0020-workaround-missing-locale.patch']
 
         if self.settings.compiler != 'Visual Studio' and self.settings.os == 'Windows':
             self.apply_patches(patchfiles)
 
         if self.settings.compiler == 'Visual Studio':
-            runConfigureICU_file = os.path.join('sources', 'source','runConfigureICU')
+            run_configure_icu_file = os.path.join('sources', 'source','runConfigureICU')
 
             if self.settings.build_type == 'Release':
-                tools.replace_in_file(runConfigureICU_file, "-MD", "-%s" % self.settings.compiler.runtime)
+                tools.replace_in_file(run_configure_icu_file, "-MD", "-%s" % self.settings.compiler.runtime)
             if self.settings.build_type == 'Debug':
-                tools.replace_in_file(runConfigureICU_file, "-MDd", "-%s -FS" % self.settings.compiler.runtime)
+                tools.replace_in_file(run_configure_icu_file, "-MDd", "-%s -FS" % self.settings.compiler.runtime)
         #else:
         #    # This allows building ICU with multiple gcc compilers (overrides fixed compiler name gcc, i.e. gcc-5)
-        #    runConfigureICU_file = os.path.join(self.name,'source','runConfigureICU')
-        #    tools.replace_in_file(runConfigureICU_file, '        CC=gcc; export CC\n', '', strict=True)
-        #    tools.replace_in_file(runConfigureICU_file, '        CXX=g++; export CXX\n', '', strict=True)
+        #    run_configure_icu_file = os.path.join(self.name,'source','runConfigureICU')
+        #    tools.replace_in_file(run_configure_icu_file, '        CC=gcc; export CC\n', '', strict=True)
+        #    tools.replace_in_file(run_configure_icu_file, '        CXX=g++; export CXX\n', '', strict=True)
 
         self.cfg['icu_source_dir'] = os.path.join(self.build_folder, 'sources', 'source')
         self.cfg['build_dir'] = os.path.join(self.build_folder, 'sources', 'build')
@@ -109,10 +110,9 @@ class IcuConan(ConanFile):
             if "VisualStudioVersion" in os.environ:
                 del os.environ["VisualStudioVersion"]
             self.cfg['vccmd'] = tools.vcvars_command(self.settings)
-            self.build_cygwin_msvc()
+            self._build_cygwin_msvc()
         else:
-            self.build_autotools()
-
+            self._build_autotools()
 
     def package(self):
         self.copy("LICENSE", dst=".", src=os.path.join(self.source_folder, 'sources'))
@@ -142,7 +142,6 @@ class IcuConan(ConanFile):
             self.copy("*", dst="lib", src=lib_dir_src, keep_path=True, symlinks=True)
             self.copy("*", dst="share", src=share_dir_src, keep_path=True, symlinks=True)
 
-
     def package_id(self):
         # ICU unit testing shouldn't affect the package's ID
         self.info.options.with_unit_tests = "any"
@@ -150,10 +149,9 @@ class IcuConan(ConanFile):
         # Verbosity doesn't affect package's ID
         self.info.options.silent = "any"
 
-
     def package_info(self):
-        bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' and self.settings.os == 'Windows' else ('bin' , 'lib')
-        self.cpp_info.libdirs = [ lib_dir ]
+        bin_dir, lib_dir = ('bin64', 'lib64') if self.settings.arch == 'x86_64' and self.settings.os == 'Windows' else ('bin', 'lib')
+        self.cpp_info.libdirs = [lib_dir]
 
         # if icudata is not last, it fails to build on some platforms (Windows)
         # some linkers are not clever enough to be able to link
@@ -161,7 +159,7 @@ class IcuConan(ConanFile):
         vtag = self.version.split('.')[0]
         keep = False
         for lib in tools.collect_libs(self, lib_dir):
-            if not vtag in lib:
+            if vtag not in lib:
                 if 'icudata' in lib or 'icudt' in lib:
                     keep = lib
                 else:
@@ -181,13 +179,12 @@ class IcuConan(ConanFile):
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
             if self.settings.os == 'Linux':
                 self.cpp_info.libs.append('dl')
-                
+
             if self.settings.os == 'Windows':
                 self.cpp_info.libs.append('advapi32')
-                
-        if self.settings.compiler in [ "gcc", "clang" ]:
-            self.cpp_info.cppflags = ["-std=c++11"]
 
+        if self.settings.compiler in ["gcc", "clang"]:
+            self.cpp_info.cppflags = ["-std=c++11"]
 
     def update_config_files(self):
         # update the outdated config.guess and config.sub included in ICU
@@ -202,23 +199,21 @@ class IcuConan(ConanFile):
             tools.download('http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f={0};hb=HEAD'.format(cfg_update),
                            dst_config)
 
-    def apply_patches(self,patchfiles):
+    def apply_patches(self, patchfiles):
         for patch in patchfiles:
-            patchfile = os.path.join('patches',patch)
+            patchfile = os.path.join('patches', patch)
             tools.patch(base_path=os.path.join('sources'), patch_file=patchfile, strip=1)
-
 
     def build_config_cmd(self):
         outdir = self.cfg['output_dir'].replace('\\', '/')
 
-        #outdir = tools.unix_path(self.cfg['output_dir'])
+        # outdir = tools.unix_path(self.cfg['output_dir'])
 
-        #if self.options.msvc_platform == 'cygwin':
-        #outdir = re.sub(r'([a-z]):(.*)',
+        # if self.options.msvc_platform == 'cygwin':
+        # outdir = re.sub(r'([a-z]):(.*)',
         #                '/cygdrive/\\1\\2',
         #                self.cfg['output_dir'],
         #                flags=re.IGNORECASE).replace('\\', '/')
-
 
         config_cmd = "../source/runConfigureICU {enable_debug} " \
                      "{platform} {host} {lib_arch_bits} {outdir} " \
@@ -234,8 +229,7 @@ class IcuConan(ConanFile):
 
         return config_cmd
 
-
-    def build_cygwin_msvc(self):
+    def _build_cygwin_msvc(self):
         self.cfg['platform'] = 'Cygwin/MSVC'
 
         if 'CYGWIN_ROOT' not in os.environ:
@@ -244,8 +238,8 @@ class IcuConan(ConanFile):
             self.output.info("Using Cygwin from: " + os.environ["CYGWIN_ROOT"])
 
         os.environ['PATH'] = os.path.join(os.environ['CYGWIN_ROOT'], 'bin') + os.pathsep + \
-                             os.path.join(os.environ['CYGWIN_ROOT'], 'usr', 'bin') + os.pathsep + \
-                             os.environ['PATH']
+            os.path.join(os.environ['CYGWIN_ROOT'], 'usr', 'bin') + os.pathsep + \
+            os.environ['PATH']
 
         os.mkdir(self.cfg['build_dir'])
 
@@ -270,9 +264,8 @@ class IcuConan(ConanFile):
         self.run("{vccmd} && cd {builddir} && make {silent} install".format(vccmd=self.cfg['vccmd'],
                                                                             builddir=self.cfg['build_dir'],
                                                                             silent=self.cfg['silent']))
-            
 
-    def build_autotools(self):
+    def _build_autotools(self):
         env_build = AutoToolsBuildEnvironment(self)
         if not self.options.shared:
             env_build.defines.append("U_STATIC_IMPLEMENTATION")
@@ -299,7 +292,7 @@ class IcuConan(ConanFile):
 
             # with tools.environment_append(env_build.vars):
             self.run("cd {builddir} && bash -c '{config_cmd}'".format(builddir=self.cfg['build_dir'],
-                                                                 config_cmd=config_cmd))
+                                                                      config_cmd=config_cmd))
 
             os.system("cd {builddir} && make {silent} -j {cpus_var}".format(builddir=self.cfg['build_dir'],
                                                                             cpus_var=tools.cpu_count(),
@@ -307,10 +300,10 @@ class IcuConan(ConanFile):
 
             if self.options.with_unit_tests:
                 os.system("cd {builddir} && make {silent} check".format(builddir=self.cfg['build_dir'],
-                                                                       silent=self.cfg['silent']))
+                                                                        silent=self.cfg['silent']))
 
             os.system("cd {builddir} && make {silent} install".format(builddir=self.cfg['build_dir'],
-                                                                     silent=self.cfg['silent']))
+                                                                      silent=self.cfg['silent']))
 
             if self.settings.os == 'Macos':
                 with tools.chdir('output/lib'):
