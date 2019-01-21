@@ -46,6 +46,7 @@ The following command both runs all the steps of the conan file, and publishes t
 | silent      | True |  [True, False] |
 | data_packaging      | archive |  ['files', 'archive', 'library', 'static'] |
 | shared      | True |  [True, False] |
+| fPIC      | True |  [True, False] |
 
 ## Add Remote
 
