@@ -31,11 +31,13 @@ class IcuConan(ConanFile):
     source_url = "https://github.com/unicode-org/icu/archive/release-{0}.tar.gz".format(version.replace('.', '-'))
 
     options = {"shared": [True, False],
+               "fPIC": [True, False],
                "data_packaging": ["files", "archive", "library", "static"],
                "with_unit_tests": [True, False],
                "silent": [True, False]}
 
     default_options = "shared=False", \
+                      "fPIC=True", \
                       "data_packaging=archive", \
                       "with_unit_tests=False", \
                       "silent=True"
@@ -55,6 +57,10 @@ class IcuConan(ConanFile):
             self.build_requires("cygwin_installer/2.9.0@bincrafters/stable")
             if self.settings.compiler != "Visual Studio":
                 self.build_requires("mingw_installer/1.0@conan/stable")
+
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
 
     def configure(self):
         if self.settings.compiler in ["gcc", "clang"]:
