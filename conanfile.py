@@ -27,7 +27,7 @@ class IcuConan(ConanFile):
     description = "ICU is a mature, widely used set of C/C++ and Java libraries " \
                   "providing Unicode and Globalization support for software applications."
     url = "https://github.com/bincrafters/conan-icu"
-    settings = "os", "arch", "compiler", "build_type"
+    settings = "cppstd", "os", "arch", "compiler", "build_type"
     source_url = "https://github.com/unicode-org/icu/archive/release-{0}.tar.gz".format(version.replace('.', '-'))
 
     options = {"shared": [True, False],
@@ -57,8 +57,8 @@ class IcuConan(ConanFile):
                 self.build_requires("mingw_installer/1.0@conan/stable")
 
     def configure(self):
-        if self.settings.compiler in ["gcc", "clang"]:
-            self.settings.compiler.libcxx = 'libstdc++11'
+        if not self.settings.cppstd:
+            self.settings.cppstd = 11
 
     def source(self):
         self.output.info("Fetching sources: {0}".format(self.source_url))
@@ -175,9 +175,6 @@ class IcuConan(ConanFile):
                 
             if self.settings.os == 'Windows':
                 self.cpp_info.libs.append('advapi32')
-                
-        if self.settings.compiler in ["gcc", "clang"]:
-            self.cpp_info.cppflags = ["-std=c++11"]
 
     def build_config_cmd(self):
         outdir = self.cfg['output_dir'].replace('\\', '/')
