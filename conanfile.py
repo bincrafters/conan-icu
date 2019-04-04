@@ -120,7 +120,9 @@ class ICUConan(ConanFile):
                     name += 'd'
             return name
 
-        libs = ['icuin', 'icuio', 'icutest', 'icutu', 'icuuc', 'icudt']
+        libs = ['icuin' if self._is_msvc else 'icui18n',
+                'icuio', 'icutest', 'icutu', 'icuuc',
+                'icudt' if self._is_msvc else 'icudata']
         self.cpp_info.libs = [lib_name(lib) for lib in libs]
         self.cpp_info.bindirs.append('lib')
 
