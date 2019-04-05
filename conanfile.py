@@ -15,13 +15,12 @@ class ICUConan(ConanFile):
     url = "https://github.com/bincrafters/conan-icu"
     settings = "os", "arch", "compiler", "build_type"
     topics = ("conan", "icu", "icu4c", "i see you", "unicode")
-
+    author = "Bincrafters <bincrafters@gmail.com>"
     options = {"shared": [True, False],
                "fPIC": [True, False],
                "data_packaging": ["files", "archive", "library", "static"],
                "with_unit_tests": [True, False],
                "silent": [True, False]}
-
     default_options = {"shared": False,
                        "fPIC": True,
                        "data_packaging": "archive",
