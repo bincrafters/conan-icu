@@ -26,6 +26,8 @@ class ICUConan(ConanFile):
                        "data_packaging": "archive",
                        "with_unit_tests": False,
                        "silent": True}
+    exports = ["LICENSE.md"]
+    exports_sources = ["patches/*.patch"]
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
 
@@ -66,6 +68,10 @@ class ICUConan(ConanFile):
                                   'PYTHONPATH="%s\\test\\testdata;%s\\data"' % (srcdir, srcdir))
 
     def build(self):
+        for filename in glob.glob("patches/*.patch"):
+            self.output.info('applying patch "%s"' % filename)
+            tools.patch(base_path=self._source_subfolder, patch_file=filename)
+
         if self._is_msvc:
             run_configure_icu_file = os.path.join(self._source_subfolder, 'icu4c', 'source', 'runConfigureICU')
 
