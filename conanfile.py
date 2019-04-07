@@ -119,7 +119,7 @@ class ICUConan(ConanFile):
     def package_info(self):
         def lib_name(lib):
             name = lib
-            if self._is_msvc:
+            if self.settings.os == "Windows":
                 if not self.options.shared:
                     name = 's' + name
                 if self.settings.build_type == "Debug":
