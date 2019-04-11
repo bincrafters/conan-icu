@@ -2,7 +2,7 @@
 
 import os
 import glob
-import traceback
+import platform
 from conans import ConanFile, tools, AutoToolsBuildEnvironment
 
 
@@ -110,6 +110,23 @@ class ICUBase(ConanFile):
     def package(self):
         self.copy("LICENSE", dst="licenses", src=os.path.join(self.source_folder, self._source_subfolder, 'icu4c'))
 
+    @staticmethod
+    def detected_os():
+        if tools.OSInfo().is_macos:
+            return "Macos"
+        if tools.OSInfo().is_windows:
+            return "Windows"
+        return platform.system()
+
+    @property
+    def cross_building(self):
+        if tools.cross_building(self.settings):
+            if self._the_os == self.detected_os():
+                if self._the_arch == "x86" and tools.detected_architecture() == "x86_64":
+                    return False
+            return True
+        return False
+
     @property
     def build_config_args(self):
         prefix = self.package_folder.replace('\\', '/')
@@ -131,12 +148,12 @@ class ICUBase(ConanFile):
                 "--disable-layout",
                 "--disable-layoutex"]
 
-        if tools.cross_building(self.settings):
+        if self.cross_building:
             if self._env_build.build:
                 args.append("--build=%s" % self._env_build.build)
             if self._env_build.host:
                 args.append("--host=%s" % self._env_build.host)
-            if self.env_info.target:
+            if self._env_build.target:
                 args.append("--target=%s" % self._env_build.target)
 
         if self.options.get_safe("data_packaging"):

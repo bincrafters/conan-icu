@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import platform
 from icu_base import ICUBase
 from conans import tools
 
@@ -25,23 +24,6 @@ class ICUConan(ICUBase):
         super(ICUConan, self).build_requirements()
         if self.cross_building:
             self.build_requires("icu_installer/%s@bincrafters/stable" % self.version)
-
-    @staticmethod
-    def detected_os():
-        if tools.OSInfo().is_macos:
-            return "Macos"
-        if tools.OSInfo().is_windows:
-            return "Windows"
-        return platform.system()
-
-    @property
-    def cross_building(self):
-        if tools.cross_building(self.settings):
-            if self.settings.os == self.detected_os():
-                if self.settings.arch == "x86" and tools.detected_architecture() == "x86_64":
-                    return False
-            return True
-        return False
 
     def package_id(self):
         self.info.options.with_unit_tests = "any"  # ICU unit testing shouldn't affect the package's ID
