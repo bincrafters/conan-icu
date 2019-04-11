@@ -20,6 +20,7 @@ class ICUBase(ConanFile):
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
     _env_build = None
+    short_paths = True
 
     @property
     def _the_os(self):
