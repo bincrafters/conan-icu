@@ -22,8 +22,17 @@ class ICUConan(ICUBase):
 
     def build_requirements(self):
         super(ICUConan, self).build_requirements()
-        if tools.cross_building(self.settings):
+        if self.cross_building:
             self.build_requires("icu_installer/%s@bincrafters/stable" % self.version)
+
+    @property
+    def cross_building(self):
+        if tools.cross_building(self.settings):
+            if self.settings.os == tools.detected_os():
+                if self.settings.arch == "x86" and tools.detected_architecture() == "x86_64":
+                    return False
+            return True
+        return False
 
     def package_id(self):
         self.info.options.with_unit_tests = "any"  # ICU unit testing shouldn't affect the package's ID
@@ -36,7 +45,7 @@ class ICUConan(ICUBase):
     @property
     def build_config_args(self):
         args = super(ICUConan, self).build_config_args
-        if tools.cross_building(self.settings):
+        if self.cross_building:
             args.append("--with-cross-build=%s" % self.deps_cpp_info["icu_installer"].rootpath)
         return args
 
