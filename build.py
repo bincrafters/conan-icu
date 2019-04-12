@@ -3,7 +3,7 @@
 
 
 import os
-from bincrafters import build_template_default, build_template_installer
+from bincrafters import build_template_default, build_template_installer, build_shared
 
 if __name__ == "__main__":
 
