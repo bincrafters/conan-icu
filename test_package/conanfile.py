@@ -1,6 +1,7 @@
 from conans import ConanFile, tools, CMake
 import os
 
+
 class ICUTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
@@ -17,8 +18,6 @@ class ICUTestConan(ConanFile):
         self.copy('*.so*', dst='bin', src=lib_dir_src)
 
     def test(self):
-        bin_dir = os.path.join(os.getcwd(), "bin")
-        os.chdir(bin_dir)
-        with tools.environment_append({"LD_LIBRARY_PATH": bin_dir, "DYLD_LIBRARY_PATH": bin_dir}):
-            self.run(".{0}test_package".format(os.sep))
-
+        if not tools.cross_building(self.settings):
+            bin_path = os.path.join("bin", "test_package")
+            self.run(bin_path, run_environment=True)
