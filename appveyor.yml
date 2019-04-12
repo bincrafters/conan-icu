@@ -7,25 +7,47 @@ environment:
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
           CONAN_VISUAL_VERSIONS: 14
           CONAN_ARCHS: x86
+          CONAN_BUILD_TYPES: Release
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+          CONAN_VISUAL_VERSIONS: 14
+          CONAN_ARCHS: x86
+          CONAN_BUILD_TYPES: Debug
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
           CONAN_VISUAL_VERSIONS: 14
           CONAN_ARCHS: x86_64
+          CONAN_BUILD_TYPES: Release
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+          CONAN_VISUAL_VERSIONS: 14
+          CONAN_ARCHS: x86_64
+          CONAN_BUILD_TYPES: Debug
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           CONAN_VISUAL_VERSIONS: 15
           CONAN_ARCHS: x86
+          CONAN_BUILD_TYPES: Release
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          CONAN_VISUAL_VERSIONS: 15
+          CONAN_ARCHS: x86
+          CONAN_BUILD_TYPES: Debug
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           CONAN_VISUAL_VERSIONS: 15
           CONAN_ARCHS: x86_64
+          CONAN_BUILD_TYPES: Release
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          CONAN_VISUAL_VERSIONS: 15
+          CONAN_ARCHS: x86_64
+          CONAN_BUILD_TYPES: Debug
         - MINGW_CONFIGURATIONS: '7@x86@dwarf2@posix'
         - MINGW_CONFIGURATIONS: '7@x86_64@seh@posix'
         - MINGW_CONFIGURATIONS: '8@x86@dwarf2@posix'
         - MINGW_CONFIGURATIONS: '8@x86_64@seh@posix'
 
-        - ARCH: x86
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          ARCH: x86
           CONAN_ARCHS: x86
           CPT_TEST_FOLDER: test_package_installer
           CONAN_CONANFILE: icu_installer.py
-        - ARCH: x86_64
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          ARCH: x86_64
           CONAN_ARCHS: x86_64
           CPT_TEST_FOLDER: test_package_installer
           CONAN_CONANFILE: icu_installer.py
