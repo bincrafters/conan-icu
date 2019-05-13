@@ -2,7 +2,6 @@
 
 import os
 from icu_base import ICUBase
-from conans import tools
 
 
 class ICUConan(ICUBase):
