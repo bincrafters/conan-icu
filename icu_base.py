@@ -16,7 +16,7 @@ class ICUBase(ConanFile):
     topics = ("conan", "icu", "icu4c", "i see you", "unicode")
     author = "Bincrafters <bincrafters@gmail.com>"
     exports = ["LICENSE.md", "icu_base.py"]
-    exports_sources = ["patches/*.patch"]
+    # exports_sources = ["patches/*.patch"]
     _source_subfolder = "source_subfolder"
     _build_subfolder = "build_subfolder"
     _env_build = None
