@@ -62,6 +62,15 @@ class ICUBase(ConanFile):
                                   'PYTHONPATH="$srcdir/test/testdata:$srcdir/data"',
                                   'PYTHONPATH="%s\\test\\testdata;%s\\data"' % (srcdir, srcdir))
 
+    def _workaround_icu_20545(self):
+        if self._is_msvc:
+            # https://unicode-org.atlassian.net/projects/ICU/issues/ICU-20545
+            srcdir = os.path.join(self.build_folder, self._source_subfolder, "icu4c", "source")
+            makeconv_cpp = os.path.join(srcdir, "tools", "makeconv", "makeconv.cpp")
+            tools.replace_in_file(makeconv_cpp,
+                                  "pathBuf.appendPathPart(arg, localError);",
+                                  "pathBuf.append('/', localError); pathBuf.append(arg, localError);")
+
     def build(self):
         for filename in glob.glob("patches/*.patch"):
             self.output.info('applying patch "%s"' % filename)
