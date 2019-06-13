@@ -87,6 +87,7 @@ class ICUBase(ConanFile):
             tools.replace_in_file(run_configure_icu_file, "-MD", flags)
 
         self._replace_pythonpath() # ICU 64.1
+        self._workaround_icu_20545()
 
         self._env_build = AutoToolsBuildEnvironment(self)
         if not self.options.get_safe("shared"):
