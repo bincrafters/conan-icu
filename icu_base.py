@@ -92,8 +92,10 @@ class ICUBase(ConanFile):
         self._env_build = AutoToolsBuildEnvironment(self)
         if not self.options.get_safe("shared"):
             self._env_build.defines.append("U_STATIC_IMPLEMENTATION")
-        if tools.is_apple_os(self._the_os) and self.settings.get_safe("os.version"):
-            self._env_build.flags.append(tools.apple_deployment_target_flag(self._the_os,
+        if tools.is_apple_os(self._the_os):
+            self._env_build.defines.append("_DARWIN_C_SOURCE")
+            if self.settings.get_safe("os.version"):
+                self._env_build.flags.append(tools.apple_deployment_target_flag(self._the_os,
                                                                             self.settings.os.version))
 
         build_dir = os.path.join(self.build_folder, self._source_subfolder, 'icu4c', 'build')
