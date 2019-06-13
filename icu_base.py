@@ -64,7 +64,7 @@ class ICUBase(ConanFile):
                                   'PYTHONPATH="%s\\test\\testdata;%s\\data"' % (srcdir, srcdir))
 
     def _workaround_icu_20545(self):
-        if self._is_msvc:
+        if tools.os_info.is_windows:
             # https://unicode-org.atlassian.net/projects/ICU/issues/ICU-20545
             srcdir = os.path.join(self.build_folder, self._source_subfolder, "icu4c", "source")
             makeconv_cpp = os.path.join(srcdir, "tools", "makeconv", "makeconv.cpp")
