@@ -55,7 +55,10 @@ class ICUConan(ICUBase):
         self.cpp_info.libs = [lib_name(lib) for lib in libs]
         self.cpp_info.bindirs.append('lib')
 
-        data_dir = os.path.join(self.package_folder, 'share', self.name, self.version)
+        data_dir_name = self.name
+        if self.settings.os == "Windows" and self.settings.build_type == "Debug":
+            data_dir_name += 'd'
+        data_dir = os.path.join(self.package_folder, 'share', data_dir_name, self.version)
         vtag = self.version.split('.')[0]
         data_file = "icudt{v}l.dat".format(v=vtag)
         data_path = os.path.join(data_dir, data_file).replace('\\', '/')
