@@ -104,6 +104,9 @@ class ICUBase(ConanFile):
         with tools.vcvars(self.settings) if self._is_msvc else tools.no_op():
             with tools.environment_append(self._env_build.vars):
                 with tools.chdir(build_dir):
+                    # workaround for https://unicode-org.atlassian.net/browse/ICU-20531
+                    os.makedirs(os.path.join("data", "out", "tmp"))
+
                     self.run(self._build_config_cmd, win_bash=tools.os_info.is_windows)
                     if self.options.get_safe("silent"):
                         silent = '--silent' if self.options.silent else 'VERBOSE=1'
