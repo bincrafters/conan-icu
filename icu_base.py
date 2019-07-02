@@ -47,15 +47,17 @@ class ICUBase(ConanFile):
 
     def source(self):
         version = self.version.replace('.', '-')
-        source_url = "https://github.com/unicode-org/icu/archive/release-{0}.tar.gz".format(version)
-        tools.get("{0}".format(source_url),
-                  sha256="524960ac99d086cdb6988d2a92fc163436fd3c6ec0a84c475c6382fbf989be05")
-        os.rename("{0}-release-{1}".format("icu", version), self._source_subfolder)
+        version_with_underscore = self.version.replace('.', '_')
+        source_url = "https://github.com/unicode-org/icu/releases/download/release-{0}/icu4c-{1}-src.tgz".format(version, version_with_underscore)
+        self.output.info("Downloading {0} ...".format(source_url))
+        tools.get(source_url,
+                  sha256="627d5d8478e6d96fc8c90fed4851239079a561a6a8b9e48b0892f24e82d31d6c")
+        os.rename("icu", self._source_subfolder)
 
     def _replace_pythonpath(self):
         if self._is_msvc:
-            srcdir = os.path.join(self.build_folder, self._source_subfolder, "icu4c", "source")
-            configure = os.path.join(self._source_subfolder, "icu4c", "source", "configure")
+            srcdir = os.path.join(self.build_folder, self._source_subfolder, "source")
+            configure = os.path.join(self._source_subfolder, "source", "configure")
             tools.replace_in_file(configure,
                                   'PYTHONPATH="$srcdir/data"',
                                   'PYTHONPATH="%s\\data"' % srcdir)
@@ -66,7 +68,7 @@ class ICUBase(ConanFile):
     def _workaround_icu_20545(self):
         if tools.os_info.is_windows:
             # https://unicode-org.atlassian.net/projects/ICU/issues/ICU-20545
-            srcdir = os.path.join(self.build_folder, self._source_subfolder, "icu4c", "source")
+            srcdir = os.path.join(self.build_folder, self._source_subfolder, "source")
             makeconv_cpp = os.path.join(srcdir, "tools", "makeconv", "makeconv.cpp")
             tools.replace_in_file(makeconv_cpp,
                                   "pathBuf.appendPathPart(arg, localError);",
@@ -78,7 +80,7 @@ class ICUBase(ConanFile):
             tools.patch(base_path=self._source_subfolder, patch_file=filename)
 
         if self._is_msvc:
-            run_configure_icu_file = os.path.join(self._source_subfolder, 'icu4c', 'source', 'runConfigureICU')
+            run_configure_icu_file = os.path.join(self._source_subfolder, 'source', 'runConfigureICU')
 
             flags = "-%s" % self.settings.compiler.runtime
             if self.settings.get_safe("build_type") == 'Debug':
@@ -98,7 +100,7 @@ class ICUBase(ConanFile):
                 self._env_build.flags.append(tools.apple_deployment_target_flag(self._the_os,
                                                                             self.settings.os.version))
 
-        build_dir = os.path.join(self.build_folder, self._source_subfolder, 'icu4c', 'build')
+        build_dir = os.path.join(self.build_folder, self._source_subfolder, 'build')
         os.mkdir(build_dir)
 
         with tools.vcvars(self.settings) if self._is_msvc else tools.no_op():
@@ -124,7 +126,7 @@ class ICUBase(ConanFile):
         self._install_name_tool()
 
     def package(self):
-        self.copy("LICENSE", dst="licenses", src=os.path.join(self.source_folder, self._source_subfolder, 'icu4c'))
+        self.copy("LICENSE", dst="licenses", src=os.path.join(self.source_folder, self._source_subfolder))
 
     @staticmethod
     def detected_os():
