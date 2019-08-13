@@ -62,7 +62,8 @@ class ICUConan(ICUBase):
         vtag = self.version.split('.')[0]
         data_file = "icudt{v}l.dat".format(v=vtag)
         data_path = os.path.join(data_dir, data_file).replace('\\', '/')
-        self.env_info.ICU_DATA.append(data_path)
+        if self.options.get_safe("data_packaging") in ["files", "archive"]:
+            self.env_info.ICU_DATA.append(data_path)
 
         if not self.options.shared:
             self.cpp_info.defines.append("U_STATIC_IMPLEMENTATION")
