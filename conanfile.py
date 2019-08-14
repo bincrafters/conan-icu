@@ -22,7 +22,7 @@ class ICUConan(ICUBase):
     def build_requirements(self):
         super(ICUConan, self).build_requirements()
         if self.cross_building:
-            self.build_requires("icu_installer/%s@bincrafters/stable" % self.version)
+            self.build_requires("icu_installer/%s@datalogics/stable" % self.version)
 
     def package_id(self):
         self.info.options.with_unit_tests = "any"  # ICU unit testing shouldn't affect the package's ID
