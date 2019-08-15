@@ -148,17 +148,19 @@ class ICUBase(ConanFile):
     @property
     def build_config_args(self):
         prefix = self.package_folder.replace('\\', '/')
-
         platform = {("Windows", "Visual Studio"): "Cygwin/MSVC",
                     ("Windows", "gcc"): "MinGW",
+                    ("AIX", "gcc"): "AIX/GCC",
+                    ("AIX", "xlc"): "AIX",
+                    ("SunOS", "gcc"): "Solaris/GCC",
                     ("Linux", "gcc"): "Linux/gcc",
                     ("Linux", "clang"): "Linux",
                     ("Macos", "gcc"): "MacOSX",
                     ("Macos", "clang"): "MacOSX",
                     ("Macos", "apple-clang"): "MacOSX"}.get((str(self._the_os),
                                                              str(self.settings.compiler)))
-
-        bits = "64" if self._the_arch == "x86_64" else "32"
+        arch64 = ['x86_64', 'sparcv9', 'ppc64']
+        bits = "64" if self._the_arch in arch64 else "32"
         args = [platform,
                 "--prefix={0}".format(prefix),
                 "--with-library-bits={0}".format(bits),
