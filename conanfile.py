@@ -25,8 +25,8 @@ class ICUConan(ICUBase):
             self.build_requires("icu_installer/%s@bincrafters/stable" % self.version)
 
     def package_id(self):
-        self.info.options.with_unit_tests = "any"  # ICU unit testing shouldn't affect the package's ID
-        self.info.options.silent = "any"  # Verbosity doesn't affect package's ID
+        del self.info.options.with_unit_tests  # ICU unit testing shouldn't affect the package's ID
+        del self.info.options.silent  # Verbosity doesn't affect package's ID
 
     def config_options(self):
         if self.settings.os == "Windows":
