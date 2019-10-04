@@ -9,11 +9,13 @@ class ICUConan(ICUBase):
     options = {"shared": [True, False],
                "fPIC": [True, False],
                "data_packaging": ["files", "archive", "library", "static"],
+               "with_extras": [True, False],
                "with_unit_tests": [True, False],
                "silent": [True, False]}
     default_options = {"shared": False,
                        "fPIC": True,
                        "data_packaging": "archive",
+                       "with_extras": True,
                        "with_unit_tests": False,
                        "silent": True}
 
