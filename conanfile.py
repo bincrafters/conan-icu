@@ -18,6 +18,7 @@ class ICUConan(ICUBase):
                        "with_extras": True,
                        "with_unit_tests": False,
                        "silent": True}
+    generators = 'txt', 'virtualenv'
 
     def build_requirements(self):
         super(ICUConan, self).build_requirements()

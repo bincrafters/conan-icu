@@ -106,6 +106,10 @@ class ICUBase(ConanFile):
         build_dir = os.path.join(self.build_folder, self._source_subfolder, 'build')
         os.mkdir(build_dir)
 
+        make_args = list()
+        if self.settings.os == 'SunOS' and self.settings.arch in ['x86_64', 'sparcv9']:
+            make_args.append('LDLIBRARYPATH_ENVVAR=LD_LIBRARY_PATH_64')
+
         with tools.vcvars(self.settings) if self._is_msvc else tools.no_op():
             with tools.environment_append(self._env_build.vars):
                 with tools.chdir(build_dir):
@@ -114,16 +118,17 @@ class ICUBase(ConanFile):
 
                     self.run(self._build_config_cmd, win_bash=tools.os_info.is_windows)
                     if self.options.get_safe("silent"):
-                        silent = '--silent' if self.options.silent else 'VERBOSE=1'
+                        make_args.insert(0, '--silent')
                     else:
-                        silent = '--silent'
-                    command = "make {silent} -j {cpu_count}".format(silent=silent,
-                                                                    cpu_count=tools.cpu_count())
+                        make_args.append('VERBOSE=1')
+                    args = ' '.join(make_args)
+                    command = "make {args} -j {cpu_count}".format(args=args,
+                                                                  cpu_count=tools.cpu_count())
                     self.run(command, win_bash=tools.os_info.is_windows)
                     if self.options.get_safe("with_unit_tests"):
-                        command = "make {silent} check".format(silent=silent)
+                        command = "make {args} check".format(args=args)
                         self.run(command, win_bash=tools.os_info.is_windows)
-                    command = "make {silent} install".format(silent=silent)
+                    command = "make {args} install".format(args=args)
                     self.run(command, win_bash=tools.os_info.is_windows)
 
         self._install_name_tool()
