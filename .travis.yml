@@ -20,7 +20,7 @@ matrix:
       - stage: default
         <<: *linux
         env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=conanio/gcc7
-      - stage: default
+      - stage: installer
         <<: *linux
         env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=conanio/gcc7-centos6 ARCH=x86_64 CPT_TEST_FOLDER=test_package_installer CONAN_CONANFILE=icu_installer.py
       - stage: default
