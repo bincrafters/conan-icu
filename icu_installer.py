@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from icu_base import ICUBase
 import os
 
