@@ -38,7 +38,7 @@ class ICUBase(ConanFile):
     def build_requirements(self):
         if self._the_os == "Windows":
             #self.build_requires("cygwin_installer/2.9.0@bincrafters/stable")
-            self.build_requires("msys2/20190524")
+            self.build_requires("msys2/20161025@bincrafters/stable")
 
     def source(self):
         version = self.version.replace('.', '-')
