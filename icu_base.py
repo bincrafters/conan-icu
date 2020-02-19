@@ -153,7 +153,8 @@ class ICUBase(ConanFile):
                 "--with-library-bits={0}".format(bits),
                 "--disable-samples",
                 "--disable-layout",
-                "--disable-layoutex"]
+                "--disable-layoutex",
+                "--disable-extras"]
 
         if self.cross_building:
             if self._env_build.build:
