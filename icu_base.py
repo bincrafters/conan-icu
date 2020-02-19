@@ -50,17 +50,6 @@ class ICUBase(ConanFile):
                   sha256="53e37466b3d6d6d01ead029e3567d873a43a5d1c668ed2278e253b683136d948")
         os.rename("icu", self._source_subfolder)
 
-    def _replace_pythonpath(self):
-        if self._is_msvc:
-            srcdir = os.path.join(self.build_folder, self._source_subfolder, "source")
-            configure = os.path.join(self._source_subfolder, "source", "configure")
-            tools.replace_in_file(configure,
-                                  'PYTHONPATH="$srcdir/data"',
-                                  'PYTHONPATH="%s\\data"' % srcdir)
-            tools.replace_in_file(configure,
-                                  'PYTHONPATH="$srcdir/test/testdata:$srcdir/data"',
-                                  'PYTHONPATH="%s\\test\\testdata;%s\\data"' % (srcdir, srcdir))
-
     def _workaround_icu_20545(self):
         if tools.os_info.is_windows:
             # https://unicode-org.atlassian.net/projects/ICU/issues/ICU-20545
@@ -84,7 +73,6 @@ class ICUBase(ConanFile):
             tools.replace_in_file(run_configure_icu_file, "-MDd", flags)
             tools.replace_in_file(run_configure_icu_file, "-MD", flags)
 
-        self._replace_pythonpath() # ICU 64.1
         self._workaround_icu_20545()
 
         self._env_build = AutoToolsBuildEnvironment(self)
