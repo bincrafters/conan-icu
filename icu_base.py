@@ -110,9 +110,8 @@ class ICUBase(ConanFile):
         self._install_name_tool()
 
     def package(self):
-        if self._is_msvc:
-            for dll in glob.glob( os.path.join( self.package_folder, 'lib', '*.dll' ) ):
-                shutil.move( dll, os.path.join( self.package_folder, 'bin' ) )
+        for dll in glob.glob( os.path.join( self.package_folder, 'lib', '*.dll' ) ):
+            shutil.move( dll, os.path.join( self.package_folder, 'bin' ) )
 
         self.copy("LICENSE", dst="licenses", src=os.path.join(self.source_folder, self._source_subfolder))
 
