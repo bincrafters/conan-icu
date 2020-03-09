@@ -38,7 +38,6 @@ class ICUBase(ConanFile):
 
     def build_requirements(self):
         if self._the_os == "Windows":
-            #self.build_requires("cygwin_installer/2.9.0@bincrafters/stable")
             self.build_requires("msys2_installer/latest@bincrafters/stable")
             if self.settings.compiler == "gcc" and tools.os_info.is_windows:
                 self.build_requires("mingw_installer/1.0@conan/stable")
@@ -100,8 +99,9 @@ class ICUBase(ConanFile):
         if tools.is_apple_os(self._the_os):
             self._env_build.defines.append("_DARWIN_C_SOURCE")
             if self.settings.get_safe("os.version"):
-                self._env_build.flags.append(tools.apple_deployment_target_flag(self._the_os,
-                                                                            self.settings.os.version))
+                self._env_build.flags.append(
+                    tools.apple_deployment_target_flag(self._the_os,
+                                                       self.settings.os.version))
 
         build_dir = os.path.join(self.build_folder, self._source_subfolder, 'build')
         os.mkdir(build_dir)
@@ -135,10 +135,10 @@ class ICUBase(ConanFile):
 
     def package(self):
         if self._is_msvc:
-            for dll in glob.glob( os.path.join( self.package_folder, 'lib', '*.dll' ) ):
-                shutil.move( dll, os.path.join( self.package_folder, 'bin' ) )
-
-        self.copy("LICENSE", dst="licenses", src=os.path.join(self.source_folder, self._source_subfolder))
+            for dll in glob.glob( os.path.join( self.package_folder, 'lib', '*.dll')):
+                shutil.move( dll, os.path.join( self.package_folder, 'bin'))
+        self.copy("LICENSE", dst="licenses",
+                  src=os.path.join(self.source_folder, self._source_subfolder))
 
     @staticmethod
     def detected_os():
@@ -153,6 +153,10 @@ class ICUBase(ConanFile):
         if tools.cross_building(self.settings):
             if self._the_os == self.detected_os():
                 if self._the_arch == "x86" and tools.detected_architecture() == "x86_64":
+                    return False
+                if self._the_arch == "sparc" and tools.detected_architecture() == "sparcv9":
+                    return False
+                if self._the_arch == "ppc32" and tools.detected_architecture() == "ppc64":
                     return False
             return True
         return False
@@ -171,7 +175,7 @@ class ICUBase(ConanFile):
                     ("Macos", "clang"): "MacOSX",
                     ("Macos", "apple-clang"): "MacOSX"}.get((str(self._the_os),
                                                              str(self.settings.compiler)))
-        arch64 = ['x86_64', 'sparcv9', 'ppc64']
+        arch64 = ['x86_64', 'sparcv9', 'ppc64', 'ppc64le', 'mips64']
         bits = "64" if self._the_arch in arch64 else "32"
         args = [platform,
                 "--prefix={0}".format(prefix),
@@ -179,7 +183,6 @@ class ICUBase(ConanFile):
                 "--disable-samples",
                 "--disable-layout",
                 "--disable-layoutex"]
-
         if self.cross_building:
             if self._env_build.build:
                 args.append("--build=%s" % self._env_build.build)
