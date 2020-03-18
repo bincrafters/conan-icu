@@ -6,7 +6,7 @@ from conans import ConanFile, tools, AutoToolsBuildEnvironment
 
 
 class ICUBase(ConanFile):
-    version = "64.2"
+    version = "66.1"
     homepage = "http://site.icu-project.org"
     license = "ICU"
     description = "ICU is a mature, widely used set of C/C++ and Java libraries " \
@@ -47,7 +47,7 @@ class ICUBase(ConanFile):
         source_url = "https://github.com/unicode-org/icu/releases/download/release-{0}/icu4c-{1}-src.tgz".format(version, version_with_underscore)
         self.output.info("Downloading {0} ...".format(source_url))
         tools.get(source_url,
-                  sha256="627d5d8478e6d96fc8c90fed4851239079a561a6a8b9e48b0892f24e82d31d6c")
+                  sha256="52a3f2209ab95559c1cf0a14f24338001f389615bf00e2585ef3dbc43ecf0a2e")
         os.rename("icu", self._source_subfolder)
 
     def _replace_pythonpath(self):
