@@ -37,7 +37,7 @@ class ICUBase(ConanFile):
 
     def build_requirements(self):
         if self._the_os == "Windows":
-            self.build_requires("msys2_installer/latest@bincrafters/stable")
+            self.build_requires("msys2/20190524")
             if self.settings.compiler == "gcc" and tools.os_info.is_windows:
                 self.build_requires("mingw_installer/1.0@conan/stable")
 
